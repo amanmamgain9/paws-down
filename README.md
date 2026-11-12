@@ -103,7 +103,7 @@ The model chooses; code decides what is allowed.
 - If the model cannot be reached, declines, or answers with a move that is not allowed, the wingcat makes the rule-based move.
 - The server checks every offer and acceptance again, and settles money only from check-in records.
 
-Not yet run live: the Claude-driven wingcats have been tested with a stand-in for the model, not against the real API, because the build machine had no Anthropic key.
+Run live once so far: on 12 Nov 2026 the two wingcats negotiated through the real Claude API in practice mode and agreed a date in two offers, in about 12 seconds. The automated tests use a stand-in for the model.
 
 ## How PayPal is used
 
@@ -137,7 +137,7 @@ npm test
 
 - **Real:** PayPal sandbox holds, voids and captures. A full date has been run on the sandbox, ending with one void and one capture.
 - **Simulated:** the people are invented, and the demo has a clock you can move forward to reach the date.
-- **Wingcats ask Claude when an Anthropic key is set, and follow fixed rules when it is not.** The screen says which, top right. The model-driven brain is covered by tests with a stand-in for the model; see "How the wingcats decide" above for what has and has not been run live.
+- **Wingcats ask Claude when an Anthropic key is set, and follow fixed rules when it is not.** The screen says which, top right. See "How the wingcats decide" above for what has been run live.
 - **Webhooks have not received a live PayPal event yet.** They are tested with events we signed ourselves in PayPal's documented format.
 - **A captured $5 stays with the platform** in this prototype. There is no payout between users.
 
