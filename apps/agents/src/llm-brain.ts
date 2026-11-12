@@ -104,7 +104,8 @@ function systemPrompt(wingcat: string, person: string): string {
   ].join('\n');
 }
 
-const when = (d: Date) => d.toLocaleString('en-US', { weekday: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+// Local time, the same clock the screens show, so the model says "evening" when the people see 18:00.
+const when = (d: Date) => d.toLocaleString('en-US', { weekday: 'long', hour: 'numeric', minute: '2-digit' });
 
 function situationText({ me, proposals }: Situation, options: Option[], canAccept: boolean): string {
   const prefs = me.preferences!;
