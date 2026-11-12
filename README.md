@@ -156,7 +156,7 @@ Checked on 12 Nov 2026: the install command above, run in an empty folder, insta
 npm test
 ```
 
-70 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), forged webhooks, the limits on what a wingcat may do whatever the model answers, and the wingcat's look at a hold (it cannot call a voided or captured hold good, and cannot look at anyone else's order).
+71 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), forged webhooks, the limits on what a wingcat may do whatever the model answers, and the wingcat's look at a hold (it cannot call a voided or captured hold good, and cannot look at anyone else's order).
 
 ## What is real and what is not
 

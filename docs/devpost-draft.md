@@ -46,7 +46,7 @@ Everyone has been stood up, and it costs the person who flaked nothing. A small 
 ## Accomplishments that we're proud of
 
 - A full date run on the real PayPal sandbox, ending with one void and one capture.
-- 70 automated tests, including PayPal timeouts and 5xx errors, forged webhooks, and a wingcat that stays inside its limits whatever the model answers.
+- 71 automated tests, including PayPal timeouts and 5xx errors, forged webhooks, and a wingcat that stays inside its limits whatever the model answers.
 - A published SDK and Context Plugin for our own API.
 
 ## What we learned
