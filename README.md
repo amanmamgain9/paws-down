@@ -44,7 +44,7 @@ Open http://localhost:5173. This is **practice mode**: no PayPal call is made, a
 
 ## Run it against the PayPal sandbox
 
-1. Copy `.env.example` to `.env` and fill in a sandbox app's client id and secret. `.env` is never committed.
+1. Copy `.env.example` to `.env` and fill in a sandbox app's client id and secret. `.env` is never committed. Add `ANTHROPIC_API_KEY` there too if you want the wingcats to ask Claude.
 2. Check the connection. The first command creates a $5 order and prints a link to approve it:
 
    ```bash
@@ -88,6 +88,23 @@ Open http://localhost:4000. With no PayPal credentials it runs in practice mode.
 | `apimatic/sdk/typescript` | The TypeScript SDK that APIMatic generated from that spec. |
 | `docs/` | Notes on the PayPal webhooks and on the PayPal Context Plugin. |
 
+## How the wingcats decide
+
+Each person has a wingcat. The two take turns: accept the other side's latest offer, or counter.
+
+- **With `ANTHROPIC_API_KEY` in `.env`, each wingcat asks Claude** (`apps/agents/src/llm-brain.ts`). Claude picks the offer and writes the reason, in that cat's voice.
+- **Without a key, the wingcats follow fixed rules** (`apps/agents/src/brain.ts`), so the app runs with no AI key at all.
+
+The model chooses; code decides what is allowed.
+
+- A wingcat is shown only dates that already fit its own person's free times, budget, areas and hard no's. It picks one by number, so it cannot invent a venue or a price.
+- It can accept only an offer that fits its own person, whatever the model says.
+- It never sees the other person's preferences, only the offers their wingcat has made. Its own person's budget and free times are not sent to the model either.
+- If the model cannot be reached, declines, or answers with a move that is not allowed, the wingcat makes the rule-based move.
+- The server checks every offer and acceptance again, and settles money only from check-in records.
+
+Not yet run live: the Claude-driven wingcats have been tested with a stand-in for the model, not against the real API, because the build machine had no Anthropic key.
+
 ## How PayPal is used
 
 All payment code uses the PayPal Server SDK (`@paypal/paypal-server-sdk`), in `apps/server/src/payments/`.
@@ -114,13 +131,13 @@ All payment code uses the PayPal Server SDK (`@paypal/paypal-server-sdk`), in `a
 npm test
 ```
 
-53 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), and forged webhooks.
+64 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), forged webhooks, and the limits on what a wingcat may do whatever the model answers.
 
 ## What is real and what is not
 
 - **Real:** PayPal sandbox holds, voids and captures. A full date has been run on the sandbox, ending with one void and one capture.
 - **Simulated:** the people are invented, and the demo has a clock you can move forward to reach the date.
-- **Wingcats are rule-based today.** They follow fixed rules to propose and counter; no language model is involved yet.
+- **Wingcats ask Claude when an Anthropic key is set, and follow fixed rules when it is not.** The screen says which, top right. The model-driven brain is covered by tests with a stand-in for the model; see "How the wingcats decide" above for what has and has not been run live.
 - **Webhooks have not received a live PayPal event yet.** They are tested with events we signed ourselves in PayPal's documented format.
 - **A captured $5 stays with the platform** in this prototype. There is no payout between users.
 
