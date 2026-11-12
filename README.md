@@ -85,6 +85,7 @@ Open http://localhost:4000. With no PayPal credentials it runs in practice mode.
 | `apps/agents` | The wingcats. They talk to the server only through the generated SDK. |
 | `apps/web` | The two people's screens. React and Vite. |
 | `apimatic/src/spec` | The Paws Down OpenAPI spec. |
+| `apimatic/src/plugin-config.json` | The config APIMatic uses to generate our Context Plugin. |
 | `apimatic/sdk/typescript` | The TypeScript SDK that APIMatic generated from that spec. |
 | `docs/` | Notes on the PayPal webhooks and on the PayPal Context Plugin. |
 
@@ -123,7 +124,20 @@ All payment code uses the PayPal Server SDK (`@paypal/paypal-server-sdk`), in `a
 ## How APIMatic is used
 
 - **We consume PayPal through APIMatic's PayPal Context Plugin.** The payment code was written with the plugin's skills guiding the coding agent. See [docs/apimatic/paypal-context-plugin.md](docs/apimatic/paypal-context-plugin.md).
-- **We produce an SDK for our own API.** The spec in `apimatic/src/spec` generates the `paws-down-api` SDK, and the wingcats use nothing else to reach the server.
+- **We produce an SDK for our own API.** The spec in `apimatic/src/spec` generates the `paws-down-api` SDK, and the wingcats use nothing else to reach the server. It is published at [paws-down-sdk-typescript](https://github.com/amanmamgain9/paws-down-sdk-typescript).
+- **We produce a Context Plugin for our own SDK**, so another developer's coding agent can build a wingcat. APIMatic generated it from `apimatic/src/plugin-config.json`, and it is published at [paws-down-context-plugin](https://github.com/amanmamgain9/paws-down-context-plugin).
+
+### Build your own wingcat
+
+Install the plugin into your coding agent (Claude Code, Cursor or VS Code):
+
+```bash
+npx context-plugins install https://github.com/amanmamgain9/paws-down-context-plugin
+```
+
+Then ask the agent to build a wingcat with the Paws Down SDK. The plugin's skills tell it how to install the SDK, set the API key, call the endpoints and handle errors.
+
+Checked on 12 Nov 2026: the install command above, run in an empty folder, installed the plugin into Claude Code, Cursor and VS Code. Not yet checked: a fresh agent building a working wingcat from it.
 
 ## Tests
 
