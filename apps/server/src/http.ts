@@ -88,7 +88,15 @@ export async function buildServer(app: PawsDown, apiKey: string, webhooks?: Webh
   http.post('/app/plans/:planId/cancel', async (req) => app.cancelPlan((req.params as P).planId!, (req.body as B)?.personId));
 
   // Demo-only routes for the screens: live events, a snapshot, and the simulated clock.
-  http.get('/demo/state', async () => ({ ...app.snapshot(), events: app.recentEvents() }));
+  // The wingcats say which brain they are running ('claude' or 'rules'), so the screens can show it.
+  let wingcatBrain: 'claude' | 'rules' | undefined;
+  http.post('/demo/wingcats', async (req) => {
+    const brain = (req.body as { brain?: string })?.brain;
+    if (brain !== 'claude' && brain !== 'rules') throw new ApiError(400, 'bad_request', "brain must be 'claude' or 'rules'.");
+    wingcatBrain = brain;
+    return { brain };
+  });
+  http.get('/demo/state', async () => ({ ...app.snapshot(), wingcatBrain, events: app.recentEvents() }));
   http.post('/demo/clock', async (req) => {
     await app.advanceClockTo((req.body as { to?: string })?.to ?? '');
     return { now: new Date(app.now()).toISOString() };
