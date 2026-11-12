@@ -1,6 +1,6 @@
 # Devpost submission draft
 
-Paste each section into the matching Devpost field. Items marked **TODO** need you.
+Submitted on 12 Nov 2026: https://devpost.com/software/paws-down. This file is the text that was entered. The testing instructions on Devpost are worded without shell commands, because Devpost's form rejected them.
 
 ## Before you press submit
 
