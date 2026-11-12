@@ -1,5 +1,7 @@
 # Demo video script
 
+The submitted video was recorded by a script, not by hand: a headless browser ran the app on the PayPal sandbox with Claude wingcats, and the captions were drawn on the page. Each $5 hold was approved by a sandbox test buyer in a separate signed-in browser, so the video shows a screenshot of that PayPal page, and the two waits for approval were cut. The manual script below still works if you want to record it yourself.
+
 Target length: 2 minutes 45 seconds. Record the browser at 1280 wide or more, so both phones fit side by side.
 
 ## Before recording

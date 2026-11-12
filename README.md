@@ -104,7 +104,7 @@ The model chooses; code decides what is allowed.
 - If the model cannot be reached, declines, or answers with a move that is not allowed, the wingcat makes the rule-based move.
 - The server checks every offer and acceptance again, and settles money only from check-in records.
 
-Run live once so far: on 12 Nov 2026 the two wingcats negotiated through the real Claude API in practice mode and agreed a date in two offers, in about 12 seconds. The automated tests use a stand-in for the model.
+Run live: on 12 Nov 2026 the two wingcats negotiated through the real Claude API and agreed a date in two offers, in about 12 seconds. The same day a full date was run with Claude wingcats and real PayPal sandbox holds together, ending in one void and one capture; that run is the demo video. The automated tests use a stand-in for the model.
 
 ## How PayPal is used
 

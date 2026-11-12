@@ -7,3 +7,5 @@ data/
 plugin/
 # Planning notes stay local.
 BRIEF*.md
+# Rendered demo videos are uploaded to YouTube, not committed.
+video/
