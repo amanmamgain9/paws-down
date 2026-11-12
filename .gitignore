@@ -5,3 +5,5 @@ dist/
 *.sqlite-journal
 data/
 plugin/
+# Planning notes stay local.
+BRIEF*.md
