@@ -1,4 +1,6 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import fastifyStatic from '@fastify/static';
 import { PawsDown } from './core.ts';
 import { UnconfiguredGateway } from './gateway.ts';
 import { buildServer } from './http.ts';
@@ -36,5 +38,13 @@ setInterval(() => void app.tick(), 1000).unref();
 // Webhooks only make sense with real PayPal, and only once a webhook id is in .env.
 const webhooks = paypal ? WebhookVerifier.fromEnv() : undefined;
 const http = await buildServer(app, apiKey, webhooks);
+
+// When the web app has been built (as it is in the Docker image), serve it from this server too,
+// so the whole of Paws Down is one address. In development Vite serves the web app instead.
+const webDist = fileURLToPath(new URL('../../web/dist', import.meta.url));
+if (existsSync(webDist)) {
+  await http.register(fastifyStatic, { root: webDist });
+  console.log(`Serving the web app from ${webDist}`);
+}
 await http.listen({ port, host: '0.0.0.0' });
 console.log(`Paws Down server listening on http://localhost:${port} (payments: ${app.paymentMode}, PayPal webhooks: ${webhooks ? 'on' : 'off'})`);
