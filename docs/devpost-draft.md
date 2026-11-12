@@ -2,6 +2,13 @@
 
 Paste each section into the matching Devpost field. Items marked **TODO** need you.
 
+## Before you press submit
+
+1. Upload `video/paws-down-demo.mp4` to YouTube as Public or Unlisted, and paste the link under Links below. It is 2 minutes 54 seconds.
+2. Prizes to enter: the main PayPal prizes and **Best Use of APIMatic**. Do not tick Bryntum, Render, AG Grid or Channel3: the project does not use them.
+3. Leave the live demo field empty. The app is not hosted; the README has one-command Docker instructions.
+4. After submitting, fill in the APIMatic claim form at the bottom of this page.
+
 ## Project name
 
 Paws Down
@@ -18,7 +25,7 @@ Everyone has been stood up, and it costs the person who flaked nothing. A small 
 
 1. Each person tells their wingcat, an AI agent, when they are free, where, their budget and their hard no's.
 2. When two people match, their wingcats negotiate a time and a public place by taking turns. Each wingcat asks Claude what to offer and why.
-3. Both people approve the plan, and each puts $5 down as a PayPal hold.
+3. Both people approve the plan, and each puts $5 down as a PayPal hold. Each wingcat then looks the hold up on PayPal itself and tells its person it is held, not charged.
 4. On the night they check in by swapping codes.
 5. Both showed up: both holds are voided and nobody pays. One person didn't: their $5 is captured and the other hold is voided.
 
@@ -68,7 +75,7 @@ typescript, node.js, fastify, sqlite, react, vite, paypal, paypal-server-sdk, pa
 - SDK: https://github.com/amanmamgain9/paws-down-sdk-typescript
 - Context Plugin: https://github.com/amanmamgain9/paws-down-context-plugin
 - Video: **TODO** YouTube link
-- Live demo: **TODO** Render link, or leave blank and point to the Docker instructions in the README
+- Live demo: none. To run it, see "Run it in two minutes" or "Run it as one container" in the README.
 
 ## Testing instructions
 
