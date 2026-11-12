@@ -1,0 +1,22 @@
+# Render blueprint: one free web service built from the Dockerfile.
+services:
+  - type: web
+    name: paws-down
+    runtime: docker
+    plan: free
+    healthCheckPath: /demo/state
+    envVars:
+      # Leave the two PayPal values empty to run in practice mode.
+      # Fill them in, in Render's dashboard, for real PayPal sandbox holds.
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      # The public address of this service, for example https://paws-down.onrender.com.
+      # PayPal sends people back here after they approve a hold.
+      - key: PAWS_DOWN_WEB_URL
+        sync: false
+      - key: PAWS_DOWN_API_KEY
+        generateValue: true

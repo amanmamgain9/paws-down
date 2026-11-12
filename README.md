@@ -63,6 +63,20 @@ When you put $5 down, PayPal's sandbox checkout opens. Log in with a sandbox **p
 
 One thing that cost us an hour: if the sandbox seller is an India account, an India buyer is refused ("This seller doesn't accept payments in your currency"). Use a US sandbox buyer.
 
+## Run it as one container
+
+The Docker image runs the server, the built web app and the wingcats together on one port.
+
+```bash
+docker build -t paws-down .
+```
+
+```bash
+docker run -p 4000:4000 paws-down
+```
+
+Open http://localhost:4000. With no PayPal credentials it runs in practice mode. Pass `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `PAWS_DOWN_WEB_URL` (the public address) for sandbox holds. `render.yaml` deploys the same image to Render.
+
 ## What is in the repo
 
 | Folder | What it is |
