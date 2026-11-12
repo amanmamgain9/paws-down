@@ -1,0 +1,73 @@
+export { PawsDownApiClient } from "./client.js";
+export type { ClientOptions } from "./client-options.js";
+
+export type { TokenProvider } from "./core/auth/credentials.js";
+
+export { People } from "./resources/people.js";
+export { Venues } from "./resources/venues.js";
+export { Negotiations } from "./resources/negotiations.js";
+export { Plans } from "./resources/plans.js";
+
+export { approvalSchema, type Approval } from "./models/approval.js";
+export { checkInSchema, type CheckIn } from "./models/check-in.js";
+export { checkInCodeSchema, type CheckInCode } from "./models/check-in-code.js";
+export { depositSchema, type Deposit } from "./models/deposit.js";
+export { DepositStatus, depositStatusSchema } from "./models/deposit-status.js";
+export { errorSchema, type Error } from "./models/error.js";
+export { errorErrorSchema, type ErrorError } from "./models/error-error.js";
+export { Intent, intentSchema } from "./models/intent.js";
+export { negotiationSchema, type Negotiation } from "./models/negotiation.js";
+export { newCheckInSchema, type NewCheckIn } from "./models/new-check-in.js";
+export { newNegotiationSchema, type NewNegotiation } from "./models/new-negotiation.js";
+export { newPersonSchema, type NewPerson } from "./models/new-person.js";
+export { newProposalSchema, type NewProposal } from "./models/new-proposal.js";
+export { Outcome, outcomeSchema } from "./models/outcome.js";
+export { personSchema, type Person } from "./models/person.js";
+export { personRefSchema, type PersonRef } from "./models/person-ref.js";
+export { planSchema, type Plan } from "./models/plan.js";
+export { preferencesSchema, type Preferences } from "./models/preferences.js";
+export { proposalSchema, type Proposal } from "./models/proposal.js";
+export { settlementSchema, type Settlement } from "./models/settlement.js";
+export { settlementResultSchema, type SettlementResult } from "./models/settlement-result.js";
+export { Status, statusSchema } from "./models/status.js";
+export { Status1, status1Schema } from "./models/status1.js";
+export { Status2, status2Schema } from "./models/status2.js";
+export { timeSlotSchema, type TimeSlot } from "./models/time-slot.js";
+export { venueSchema, type Venue } from "./models/venue.js";
+
+export {
+  CoreError as PawsDownApiError,
+  ResponseError,
+  DecodeError,
+  EncodeError,
+  ConnectionError,
+  TimeoutError,
+  AuthError,
+  PaginationError,
+  ConfigurationError,
+} from "./core/errors.js";
+export { ApiError } from "./core/api-error.js";
+export { SchemaError } from "./core/validation/schema-error.js";
+export {
+  defaultLoggingOptions,
+  type LoggingOptions,
+  type RequestLoggingOptions,
+  type Logger,
+  type LogDetails,
+  type HttpRequestDetails,
+  type RequestHeadersDetails,
+  type RequestBodyDetails,
+  type HttpResponseDetails,
+  type ResponseHeadersDetails,
+  type HttpRetryingDetails,
+  type HttpFailedDetails,
+  type LogLevel,
+} from "./core/logging.js";
+export type { ApiPromise, ApiResult } from "./core/api-promise.js";
+export type { Pageable, PageableApiResult } from "./core/pagination/pageable.js";
+export type { HttpMethod, RequestOptions } from "./core/api-request.js";
+export type { RetryOptions, RequestRetryOptions, RetryAttempt, RetryReason } from "./core/retry.js";
+export type { BinaryContent, BinaryData, BinaryErrorContent, FileData, FileInput } from "./core/binary.js";
+export type { ErrorKind } from "./core/errors.js";
+export type { Declared, Undeclared } from "./core/api-error.js";
+export type { Schema, EnumSchema, Encoded, ValidationResult, JsonValue } from "./core/validation/schema.js";

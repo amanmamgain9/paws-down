@@ -1,0 +1,1 @@
+{"version":3,"file":"new-person.js","sourceRoot":"","sources":["../../../src/models/new-person.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA,MAAY,CAAC,wDAAoC;AAapC,QAAA,eAAe,GAAsB,CAAC,CAAC,MAAM,CACxD;IACE,IAAI,EAAE,CAAC,CAAC,MAAM,EAAE;IAChB,WAAW,EAAE,CAAC,CAAC,MAAM,EAAE;CACxB,EACD,EAAE,oBAAoB,EAAE,CAAC,CAAC,IAAI,EAAE,EAAE,CACnC,CAAC"}

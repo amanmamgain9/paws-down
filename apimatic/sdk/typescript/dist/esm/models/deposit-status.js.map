@@ -1,0 +1,1 @@
+{"version":3,"file":"deposit-status.js","sourceRoot":"","sources":["../../../src/models/deposit-status.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,CAAC,MAAM,6BAA6B,CAAC;AAGjD,mCAAmC;AACnC,MAAM,CAAC,MAAM,aAAa,GAAG;IAC3B,QAAQ,EAAE,UAAU;IACpB,QAAQ,EAAE,UAAU;CACZ,CAAC;AAGX,MAAM,CAAC,MAAM,mBAAmB,GAA8B,CAAC,CAAC,MAAM,CAAgB,aAAa,CAAC,CAAC"}

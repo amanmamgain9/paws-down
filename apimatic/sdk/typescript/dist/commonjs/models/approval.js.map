@@ -1,0 +1,1 @@
+{"version":3,"file":"approval.js","sourceRoot":"","sources":["../../../src/models/approval.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA,MAAY,CAAC,wDAAoC;AAapC,QAAA,cAAc,GAAqB,CAAC,CAAC,MAAM,CACtD;IACE,QAAQ,EAAE,CAAC,CAAC,MAAM,EAAE;IACpB,QAAQ,EAAE,CAAC,CAAC,OAAO,EAAE;CACtB,EACD,EAAE,oBAAoB,EAAE,CAAC,CAAC,IAAI,EAAE,EAAE,CACnC,CAAC"}

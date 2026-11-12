@@ -1,0 +1,1 @@
+{"version":3,"file":"auth-schemes.js","sourceRoot":"","sources":["../../src/auth-schemes.ts"],"names":[],"mappings":";;;AAEA,uDAA0D;AAM1D,0BAAiC,OAAsB;IACrD,OAAO;QACL,UAAU,EAAE,IAAA,6BAAgB,EAAC,EAAE,IAAI,EAAE,WAAW,EAAE,KAAK,EAAE,OAAO,CAAC,UAAU,EAAE,CAAC;KAC/E,CAAC;AACJ,CAAC"}

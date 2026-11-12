@@ -1,0 +1,24 @@
+import type { JsonValue, Schema } from "../core/validation/schema.js";
+import { type Status } from "./status.js";
+/** A negotiation between two wingcats. */
+export type Negotiation = {
+    /** The negotiation's ID. */
+    id: string;
+    /** The person whose wingcat proposed first. */
+    personAId: string;
+    /** The other person. */
+    personBId: string;
+    /** Where the negotiation stands. */
+    status: Status;
+    /** How many proposals have been made. */
+    round: number;
+    /** The negotiation fails after this many proposals without agreement. */
+    maxRounds: number;
+    /** Whose wingcat must act next. Absent once the negotiation is over. */
+    turnPersonId?: string;
+    /** The plan created when the negotiation was agreed. */
+    planId?: string;
+    /** Properties the service sent or accepts beyond those declared. */
+    additionalProperties?: Record<string, JsonValue>;
+};
+export declare const negotiationSchema: Schema<Negotiation>;

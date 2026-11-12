@@ -1,0 +1,1 @@
+{"version":3,"file":"outcome.js","sourceRoot":"","sources":["../../../src/models/outcome.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,CAAC,MAAM,6BAA6B,CAAC;AAGjD,iCAAiC;AACjC,MAAM,CAAC,MAAM,OAAO,GAAG;IACrB,UAAU,EAAE,aAAa;IACzB,SAAS,EAAE,aAAa;IACxB,UAAU,EAAE,cAAc;IAC1B,SAAS,EAAE,WAAW;CACd,CAAC;AAGX,MAAM,CAAC,MAAM,aAAa,GAAwB,CAAC,CAAC,MAAM,CAAU,OAAO,CAAC,CAAC"}

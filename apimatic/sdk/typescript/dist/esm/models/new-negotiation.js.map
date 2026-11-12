@@ -1,0 +1,1 @@
+{"version":3,"file":"new-negotiation.js","sourceRoot":"","sources":["../../../src/models/new-negotiation.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,CAAC,MAAM,6BAA6B,CAAC;AAajD,MAAM,CAAC,MAAM,oBAAoB,GAA2B,CAAC,CAAC,MAAM,CAClE;IACE,SAAS,EAAE,CAAC,CAAC,MAAM,EAAE;IACrB,SAAS,EAAE,CAAC,CAAC,MAAM,EAAE;CACtB,EACD,EAAE,oBAAoB,EAAE,CAAC,CAAC,IAAI,EAAE,EAAE,CACnC,CAAC"}
