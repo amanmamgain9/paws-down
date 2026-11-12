@@ -1,0 +1,985 @@
+openapi: 3.0.3
+info:
+  title: Paws Down API
+  version: 0.1.0
+  description: >-
+    No-flake dates. Two people each tell an AI wingcat what they want, the
+    wingcats negotiate a plan, both people place a refundable 5 USD PayPal hold,
+    and the holds are released when both show up. This API is what wingcat
+    agents use to register a person, negotiate, and follow a date through
+    deposits, check-in and settlement.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:4000
+    description: Local development server
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: People
+    description: The people going on dates and what each of them wants.
+  - name: Venues
+    description: The public places a date can happen at.
+  - name: Negotiations
+    description: Wingcats exchanging proposals until they agree or run out of rounds.
+  - name: Plans
+    description: An agreed date plan, its approvals, deposits, check-ins and settlement.
+paths:
+  /people:
+    post:
+      tags: [People]
+      operationId: createPerson
+      summary: Register a person
+      description: Registers a person and the name of the wingcat that will negotiate for them.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPerson'
+      responses:
+        '201':
+          description: The person was registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /people/{personId}:
+    get:
+      tags: [People]
+      operationId: getPerson
+      summary: Get a person
+      description: Returns a person and their saved preferences.
+      parameters:
+        - $ref: '#/components/parameters/PersonId'
+      responses:
+        '200':
+          description: The person.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /people/{personId}/preferences:
+    put:
+      tags: [People]
+      operationId: setPreferences
+      summary: Save a person's date preferences
+      description: >-
+        Replaces the person's preferences. These are the hard limits the server
+        checks every plan against, so a wingcat can never agree to something
+        outside them.
+      parameters:
+        - $ref: '#/components/parameters/PersonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preferences'
+      responses:
+        '200':
+          description: The person with the saved preferences.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /venues:
+    get:
+      tags: [Venues]
+      operationId: listVenues
+      summary: List the public venues a date can happen at
+      description: >-
+        Dates happen at public places only. A proposal must name a venue and
+        area from this list and cost at least the venue's price.
+      responses:
+        '200':
+          description: The venues.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: Every venue.
+                items:
+                  $ref: '#/components/schemas/Venue'
+  /negotiations:
+    post:
+      tags: [Negotiations]
+      operationId: startNegotiation
+      summary: Start a negotiation between two people
+      description: >-
+        Opens a negotiation between two registered people. Both must have saved
+        preferences, be looking for compatible things, and have each said yes to
+        meeting the other. People give that yes themselves; a wingcat cannot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewNegotiation'
+      responses:
+        '201':
+          description: The negotiation was opened.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Negotiation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /negotiations/{negotiationId}:
+    get:
+      tags: [Negotiations]
+      operationId: getNegotiation
+      summary: Get a negotiation
+      description: Returns the negotiation's status, whose turn it is, and the plan once one is agreed.
+      parameters:
+        - $ref: '#/components/parameters/NegotiationId'
+      responses:
+        '200':
+          description: The negotiation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Negotiation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /negotiations/{negotiationId}/proposals:
+    get:
+      tags: [Negotiations]
+      operationId: listProposals
+      summary: List proposals in a negotiation
+      description: Returns every proposal made so far, oldest first.
+      parameters:
+        - $ref: '#/components/parameters/NegotiationId'
+      responses:
+        '200':
+          description: The proposals.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proposal'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Negotiations]
+      operationId: makeProposal
+      summary: Make a proposal or counter-proposal
+      description: >-
+        Posts a proposal on behalf of one person. It must be that person's turn
+        and the proposal must fit their own preferences. Each proposal uses one
+        round; the negotiation fails when the rounds run out.
+      parameters:
+        - $ref: '#/components/parameters/NegotiationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProposal'
+      responses:
+        '201':
+          description: The proposal was recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /negotiations/{negotiationId}/proposals/{proposalId}/accept:
+    post:
+      tags: [Negotiations]
+      operationId: acceptProposal
+      summary: Accept the other side's proposal
+      description: >-
+        Accepts a proposal made by the other person. The server checks the
+        proposal against both people's preferences; if it fits, the negotiation
+        is agreed and a plan is created.
+      parameters:
+        - $ref: '#/components/parameters/NegotiationId'
+        - $ref: '#/components/parameters/ProposalId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonRef'
+      responses:
+        '201':
+          description: The plan created from the accepted proposal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/OutsideLimits'
+  /plans/{planId}:
+    get:
+      tags: [Plans]
+      operationId: getPlan
+      summary: Get a plan
+      description: Returns the plan with its approvals, deposits, check-ins and settlement.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '200':
+          description: The plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/approvals:
+    post:
+      tags: [Plans]
+      operationId: approvePlan
+      summary: Record a person's yes or no to the plan
+      description: Each person approves or rejects the plan their wingcat agreed. One rejection cancels the plan.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+      responses:
+        '200':
+          description: The updated plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /plans/{planId}/deposits:
+    post:
+      tags: [Plans]
+      operationId: createDeposit
+      summary: Start a person's 5 USD hold
+      description: >-
+        Creates a PayPal order for a refundable hold and returns the link the
+        person opens to approve it. Money is held, not taken.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonRef'
+      responses:
+        '201':
+          description: The deposit, waiting for the person's approval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deposit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/PaymentProviderError'
+  /plans/{planId}/deposits/{depositId}/confirm:
+    post:
+      tags: [Plans]
+      operationId: confirmDeposit
+      summary: Confirm a hold after the person approved it
+      description: >-
+        Places the hold once the person has approved it with PayPal. When both
+        people's holds are in place the plan becomes locked.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/DepositId'
+      responses:
+        '200':
+          description: The deposit, now held.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deposit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/PaymentProviderError'
+  /plans/{planId}/checkins:
+    post:
+      tags: [Plans]
+      operationId: checkIn
+      summary: Check a person in at the date
+      description: >-
+        Records that a person has arrived. Entering the code shown on the other
+        person's screen confirms the two are together. Only possible inside the
+        check-in window of a locked plan.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCheckIn'
+      responses:
+        '201':
+          description: The check-in was recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckIn'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /plans/{planId}/checkin-codes/{personId}:
+    get:
+      tags: [Plans]
+      operationId: getCheckInCode
+      summary: Get a person's check-in code
+      description: Returns the code this person shows to the other person when they meet.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/PersonId'
+      responses:
+        '200':
+          description: The person's check-in code.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckInCode'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/cancel:
+    post:
+      tags: [Plans]
+      operationId: cancelPlan
+      summary: Cancel a plan before the cut-off
+      description: Either person can cancel before the plan's cancel-by time. Every hold is released.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonRef'
+      responses:
+        '200':
+          description: The cancelled plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/PaymentProviderError'
+  /plans/{planId}/settlement:
+    get:
+      tags: [Plans]
+      operationId: getSettlement
+      summary: Get how the deposits were settled
+      description: >-
+        Returns what happened to each hold after the date: released when the
+        person showed up or the date was cancelled, captured when they did not.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '200':
+          description: The settlement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settlement'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: The API key issued to a wingcat agent.
+  parameters:
+    PersonId:
+      name: personId
+      in: path
+      required: true
+      description: The person's ID.
+      schema:
+        type: string
+      example: per_alex
+    NegotiationId:
+      name: negotiationId
+      in: path
+      required: true
+      description: The negotiation's ID.
+      schema:
+        type: string
+      example: neg_7f3a
+    ProposalId:
+      name: proposalId
+      in: path
+      required: true
+      description: The proposal's ID.
+      schema:
+        type: string
+      example: pro_2
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      description: The plan's ID.
+      schema:
+        type: string
+      example: pln_9c1d
+    DepositId:
+      name: depositId
+      in: path
+      required: true
+      description: The deposit's ID.
+      schema:
+        type: string
+      example: dep_alex
+  responses:
+    BadRequest:
+      description: The request was malformed or broke a rule of the API.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Nothing exists with that ID.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: The action is not allowed in the current state, for example it is not this person's turn.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    OutsideLimits:
+      description: The proposal does not fit one or both people's preferences.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    PaymentProviderError:
+      description: PayPal could not complete the request. Safe to retry.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    NewPerson:
+      type: object
+      description: A person to register.
+      required: [name, wingcatName]
+      properties:
+        name:
+          type: string
+          description: The person's first name.
+          example: Alex
+        wingcatName:
+          type: string
+          description: The name of the wingcat that negotiates for this person.
+          example: Mochi
+    Person:
+      type: object
+      description: A registered person.
+      required: [id, name, wingcatName]
+      properties:
+        id:
+          type: string
+          description: The person's ID.
+          example: per_alex
+        name:
+          type: string
+          description: The person's first name.
+          example: Alex
+        wingcatName:
+          type: string
+          description: The name of this person's wingcat.
+          example: Mochi
+        preferences:
+          $ref: '#/components/schemas/Preferences'
+    Preferences:
+      type: object
+      description: What a person wants from a date. The server treats these as hard limits.
+      required: [freeSlots, maxBudget, areas]
+      properties:
+        freeSlots:
+          type: array
+          description: Times the person is free. A plan must start inside one of them.
+          items:
+            $ref: '#/components/schemas/TimeSlot'
+        maxBudget:
+          type: number
+          description: The most the person will spend on the date, in USD.
+          example: 30
+        areas:
+          type: array
+          description: The parts of town the person can get to. A plan's area must be one of them.
+          items:
+            type: string
+          example: [Downtown, Riverside]
+        likes:
+          type: array
+          description: Activities or food the person enjoys.
+          items:
+            type: string
+          example: [ramen, board games]
+        dealbreakers:
+          type: array
+          description: Things the plan must not include.
+          items:
+            type: string
+          example: [smoking venues]
+        intent:
+          type: string
+          description: >-
+            What the person is looking for. Two people are only paired when their
+            answers match or one of them is not sure.
+          enum: [serious, casual, not_sure]
+          example: not_sure
+    TimeSlot:
+      type: object
+      description: A window of free time.
+      required: [start, end]
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: When the window opens.
+          example: '2026-11-14T17:00:00Z'
+        end:
+          type: string
+          format: date-time
+          description: When the window closes.
+          example: '2026-11-14T22:00:00Z'
+    Venue:
+      type: object
+      description: A public place for a date.
+      required: [id, name, area, activity, costPerPerson, tags]
+      properties:
+        id:
+          type: string
+          description: The venue's ID.
+          example: ven_greenbowl
+        name:
+          type: string
+          description: The venue's name. Use it exactly in a proposal.
+          example: Green Bowl
+        area:
+          type: string
+          description: The part of town it is in.
+          example: Downtown
+        activity:
+          type: string
+          description: What people do there.
+          example: Vegetarian dinner
+        costPerPerson:
+          type: number
+          description: Typical cost for each person, in USD.
+          example: 22
+        tags:
+          type: array
+          description: Words describing the venue, useful for matching likes and dealbreakers.
+          items:
+            type: string
+          example: [vegetarian, dinner]
+    NewNegotiation:
+      type: object
+      description: The two people whose wingcats should negotiate.
+      required: [personAId, personBId]
+      properties:
+        personAId:
+          type: string
+          description: The person whose wingcat proposes first.
+          example: per_alex
+        personBId:
+          type: string
+          description: The other person.
+          example: per_sam
+    Negotiation:
+      type: object
+      description: A negotiation between two wingcats.
+      required: [id, personAId, personBId, status, round, maxRounds]
+      properties:
+        id:
+          type: string
+          description: The negotiation's ID.
+          example: neg_7f3a
+        personAId:
+          type: string
+          description: The person whose wingcat proposed first.
+          example: per_alex
+        personBId:
+          type: string
+          description: The other person.
+          example: per_sam
+        status:
+          type: string
+          description: Where the negotiation stands.
+          enum: [open, agreed, failed]
+          example: open
+        round:
+          type: integer
+          description: How many proposals have been made.
+          example: 2
+        maxRounds:
+          type: integer
+          description: The negotiation fails after this many proposals without agreement.
+          example: 6
+        turnPersonId:
+          type: string
+          description: Whose wingcat must act next. Absent once the negotiation is over.
+          example: per_sam
+        planId:
+          type: string
+          description: The plan created when the negotiation was agreed.
+          example: pln_9c1d
+    NewProposal:
+      type: object
+      description: A proposed date.
+      required: [fromPersonId, startsAt, venue, area, activity, costPerPerson, reason]
+      properties:
+        fromPersonId:
+          type: string
+          description: The person this proposal is made for.
+          example: per_alex
+        startsAt:
+          type: string
+          format: date-time
+          description: When the date would start.
+          example: '2026-11-14T18:00:00Z'
+        venue:
+          type: string
+          description: Where the date would be.
+          example: Green Bowl
+        area:
+          type: string
+          description: The part of town the venue is in.
+          example: Downtown
+        activity:
+          type: string
+          description: What the two would do.
+          example: Vegetarian dinner
+        costPerPerson:
+          type: number
+          description: Estimated cost for each person, in USD.
+          example: 22
+        reason:
+          type: string
+          description: One sentence, shown to both people, on why the wingcat is proposing this.
+          example: Saturday evening suits both of you and the menu is vegetarian.
+    Proposal:
+      type: object
+      description: A proposal recorded in a negotiation.
+      required: [id, negotiationId, fromPersonId, startsAt, venue, activity, costPerPerson, reason, round]
+      properties:
+        id:
+          type: string
+          description: The proposal's ID.
+          example: pro_2
+        negotiationId:
+          type: string
+          description: The negotiation it belongs to.
+          example: neg_7f3a
+        fromPersonId:
+          type: string
+          description: The person it was made for.
+          example: per_alex
+        startsAt:
+          type: string
+          format: date-time
+          description: When the date would start.
+          example: '2026-11-14T18:00:00Z'
+        venue:
+          type: string
+          description: Where the date would be.
+          example: Green Bowl
+        area:
+          type: string
+          description: The part of town the venue is in.
+          example: Downtown
+        activity:
+          type: string
+          description: What the two would do.
+          example: Vegetarian dinner
+        costPerPerson:
+          type: number
+          description: Estimated cost for each person, in USD.
+          example: 22
+        reason:
+          type: string
+          description: Why the wingcat proposed this.
+          example: Saturday evening suits both of you and the menu is vegetarian.
+        round:
+          type: integer
+          description: Which round of the negotiation this was.
+          example: 2
+    PersonRef:
+      type: object
+      description: Identifies the person an action is taken for.
+      required: [personId]
+      properties:
+        personId:
+          type: string
+          description: The person's ID.
+          example: per_sam
+    Approval:
+      type: object
+      description: A person's answer to the agreed plan.
+      required: [personId, approved]
+      properties:
+        personId:
+          type: string
+          description: The person answering.
+          example: per_alex
+        approved:
+          type: boolean
+          description: True to go ahead, false to call it off.
+          example: true
+    Plan:
+      type: object
+      description: An agreed date and everything that happens to it afterwards.
+      required: [id, negotiationId, status, startsAt, venue, area, activity, costPerPerson, depositAmount, cancelBy, checkInOpensAt, checkInClosesAt, approvals, deposits, checkIns]
+      properties:
+        id:
+          type: string
+          description: The plan's ID.
+          example: pln_9c1d
+        negotiationId:
+          type: string
+          description: The negotiation that produced the plan.
+          example: neg_7f3a
+        status:
+          type: string
+          description: >-
+            Where the plan stands. It is locked once both holds are in place and
+            settled once the holds have been released or captured.
+          enum: [awaiting_approval, awaiting_deposits, locked, settled, cancelled]
+          example: locked
+        startsAt:
+          type: string
+          format: date-time
+          description: When the date starts.
+          example: '2026-11-14T18:00:00Z'
+        venue:
+          type: string
+          description: Where the date is.
+          example: Green Bowl
+        area:
+          type: string
+          description: The part of town the venue is in.
+          example: Downtown
+        activity:
+          type: string
+          description: What the two will do.
+          example: Vegetarian dinner
+        costPerPerson:
+          type: number
+          description: Estimated cost for each person, in USD.
+          example: 22
+        depositAmount:
+          type: number
+          description: The refundable hold each person places, in USD.
+          example: 5
+        cancelBy:
+          type: string
+          format: date-time
+          description: Either person can cancel before this time and both holds are released.
+          example: '2026-11-14T12:00:00Z'
+        checkInOpensAt:
+          type: string
+          format: date-time
+          description: When check-in opens.
+          example: '2026-11-14T17:45:00Z'
+        checkInClosesAt:
+          type: string
+          format: date-time
+          description: When check-in closes and the deposits are settled.
+          example: '2026-11-14T18:30:00Z'
+        approvals:
+          type: array
+          description: Each person's answer so far.
+          items:
+            $ref: '#/components/schemas/Approval'
+        deposits:
+          type: array
+          description: Each person's hold.
+          items:
+            $ref: '#/components/schemas/Deposit'
+        checkIns:
+          type: array
+          description: Who has checked in.
+          items:
+            $ref: '#/components/schemas/CheckIn'
+    Deposit:
+      type: object
+      description: One person's refundable hold.
+      required: [id, planId, personId, amount, status]
+      properties:
+        id:
+          type: string
+          description: The deposit's ID.
+          example: dep_alex
+        planId:
+          type: string
+          description: The plan it secures.
+          example: pln_9c1d
+        personId:
+          type: string
+          description: The person who placed it.
+          example: per_alex
+        amount:
+          type: number
+          description: The amount held, in USD.
+          example: 5
+        status:
+          type: string
+          description: >-
+            The hold's state. Released means the money went back to the person;
+            captured means they did not show up and lost it.
+          enum: [awaiting_approval, held, released, captured, failed]
+          example: held
+        approveUrl:
+          type: string
+          description: The PayPal page the person opens to approve the hold. Present while awaiting approval.
+          example: https://www.sandbox.paypal.com/checkoutnow?token=EXAMPLE
+    NewCheckIn:
+      type: object
+      description: A check-in attempt.
+      required: [personId]
+      properties:
+        personId:
+          type: string
+          description: The person checking in.
+          example: per_alex
+        partnerCode:
+          type: string
+          description: The code shown on the other person's screen. Send it when you have met, to confirm you are together.
+          example: MEOW-4821
+    CheckIn:
+      type: object
+      description: A recorded check-in.
+      required: [personId, checkedInAt, confirmedWithPartnerCode]
+      properties:
+        personId:
+          type: string
+          description: The person who checked in.
+          example: per_alex
+        confirmedWithPartnerCode:
+          type: boolean
+          description: True when the person entered the other person's code.
+          example: true
+        checkedInAt:
+          type: string
+          format: date-time
+          description: When they checked in.
+          example: '2026-11-14T17:58:00Z'
+    CheckInCode:
+      type: object
+      description: The code a person shows to their date.
+      required: [personId, code]
+      properties:
+        personId:
+          type: string
+          description: The person the code belongs to.
+          example: per_sam
+        code:
+          type: string
+          description: The code to show.
+          example: MEOW-4821
+    Settlement:
+      type: object
+      description: The outcome of a date for both deposits.
+      required: [planId, outcome, results]
+      properties:
+        planId:
+          type: string
+          description: The plan that was settled.
+          example: pln_9c1d
+        outcome:
+          type: string
+          description: What happened on the date.
+          enum: [both_showed, one_no_show, both_no_show, cancelled]
+          example: both_showed
+        settledAt:
+          type: string
+          format: date-time
+          description: When the settlement ran.
+          example: '2026-11-14T18:30:05Z'
+        results:
+          type: array
+          description: What happened to each person's hold.
+          items:
+            $ref: '#/components/schemas/SettlementResult'
+    SettlementResult:
+      type: object
+      description: The outcome for one person's hold.
+      required: [personId, showedUp, depositStatus, amount]
+      properties:
+        personId:
+          type: string
+          description: The person.
+          example: per_sam
+        showedUp:
+          type: boolean
+          description: Whether the person checked in.
+          example: true
+        depositStatus:
+          type: string
+          description: What happened to their hold.
+          enum: [released, captured]
+          example: released
+        amount:
+          type: number
+          description: The amount released or captured, in USD.
+          example: 5
+    Error:
+      type: object
+      description: An error returned by the API.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: A short machine-readable code.
+          example: not_your_turn
+        message:
+          type: string
+          description: A sentence a person can read.
+          example: It is the other wingcat's turn to propose.
