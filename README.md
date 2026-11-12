@@ -6,6 +6,8 @@ Built for the PayPal AI Hackathon.
 
 **Demo video (2 min 54 s):** https://youtu.be/fT22QcrE3yE
 
+**Live demo:** https://paws-down.onrender.com. It runs in practice mode: pretend money and rule-based wingcats, with no accounts or keys. It is on a free server, so the first load can take up to a minute, and all visitors share one demo; **Start over** resets it.
+
 **Devpost entry:** https://devpost.com/software/paws-down
 
 ## How it works
