@@ -12,7 +12,7 @@
     "sandbox:server": "PAWS_DOWN_DB=:memory: npm -w @paws-down/server start",
     "wingcats": "npm -w @paws-down/agents start",
     "web": "npm -w @paws-down/web run dev",
-    "test": "npm -w @paws-down/server test",
+    "test": "npm -w @paws-down/server test && npm -w @paws-down/agents test",
     "paypal:check": "npm -w @paws-down/server run -s paypal:check --",
     "spec:validate": "apimatic api validate --file=apimatic/src/spec/openapi.yaml",
     "sdk:generate": "apimatic sdk generate -l typescript --codegen-version v4 -i apimatic -f && npm --prefix apimatic/sdk/typescript install --no-audit --no-fund && npm --prefix apimatic/sdk/typescript run build",

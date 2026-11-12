@@ -1,5 +1,6 @@
 import { PawsDownApiClient } from 'paws-down-api';
 import { RuleBrain, type Brain } from './brain.ts';
+import { LlmBrain } from './llm-brain.ts';
 
 /**
  * Runs the wingcats. Every action on the Paws Down API goes through the
@@ -18,8 +19,13 @@ const client = new PawsDownApiClient({
   apiKeyAuth: process.env.PAWS_DOWN_API_KEY ?? 'demo-key',
   serverOptions: { baseUrl },
 });
-const brain: Brain = new RuleBrain();
-const THINKING_MS = Number(process.env.WINGCAT_THINKING_MS ?? 2500);
+// With an Anthropic key in .env the wingcats ask Claude. Without one they follow fixed rules,
+// so the app still runs with no AI key at all. Either way the screens say which it is.
+const key = process.env.ANTHROPIC_API_KEY ?? '';
+const brainName: 'claude' | 'rules' = key && !key.startsWith('your-') ? 'claude' : 'rules';
+const brain: Brain = brainName === 'claude' ? new LlmBrain() : new RuleBrain();
+// The rule-based cats pause so their moves can be followed. Claude takes its own time to think.
+const THINKING_MS = Number(process.env.WINGCAT_THINKING_MS ?? (brainName === 'claude' ? 400 : 2500));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 interface OpenNegotiation {
@@ -54,10 +60,14 @@ async function takeTurn(n: OpenNegotiation): Promise<void> {
 }
 
 const stuck = new Set<string>();
-console.log(`Wingcats are watching ${baseUrl} (rule-based brain)`);
+console.log(`Wingcats are watching ${baseUrl} (${brainName === 'claude' ? 'asking Claude' : 'rule-based brain'})`);
 for (;;) {
   try {
-    const state = (await (await fetch(`${baseUrl}/demo/state`)).json()) as { negotiations: OpenNegotiation[]; proposals: { negotiationId: string }[] };
+    const state = (await (await fetch(`${baseUrl}/demo/state`)).json()) as { wingcatBrain?: string; negotiations: OpenNegotiation[]; proposals: { negotiationId: string }[] };
+    // Tell the server which brain is running, so the screens can say so.
+    if (state.wingcatBrain !== brainName) {
+      await fetch(`${baseUrl}/demo/wingcats`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brain: brainName }) });
+    }
     for (const n of state.negotiations) {
       const round = state.proposals.filter((p) => p.negotiationId === n.id).length;
       if (n.status !== 'open' || !n.turnPersonId || stuck.has(`${n.id}:${round}`)) continue;

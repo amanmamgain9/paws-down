@@ -38,9 +38,40 @@ export function myProblems(p: DateIdea, me: Person): string[] {
   return out;
 }
 
+/** One date my person could say yes to, that I have not offered before. */
+export interface Option {
+  v: Venue;
+  startsAt: Date;
+  /** Which of my person's likes this venue matches. */
+  liked: string[];
+}
+
+/**
+ * Every date that fits my person, best first. Both brains choose from this list, so no wingcat,
+ * rule-based or model-driven, can offer something its own person would refuse.
+ */
+export function optionsFor(me: Person, proposals: Proposal[], venues: Venue[], now: number): Option[] {
+  const prefs = me.preferences;
+  if (!prefs) return [];
+  const last = proposals.at(-1);
+  const theirs = last && last.fromPersonId !== me.id ? last : undefined;
+  const problems = theirs ? myProblems(theirs, me) : [];
+  const key = (venue: string, at: Date) => `${venue}|${at.getTime()}`;
+  const mine = new Set(proposals.filter((p) => p.fromPersonId === me.id).map((p) => key(p.venue, p.startsAt)));
+  const times = prefs.freeSlots.map((s) => new Date(s.start.getTime() + 60 * 60 * 1000)).filter((t) => t.getTime() > now);
+  // If their time already works for my person, keep it: change as little as possible.
+  if (theirs && !problems.some((p) => p.includes("isn't free"))) times.unshift(theirs.startsAt);
+  const likes = (prefs.likes ?? []).map((l) => l.toLowerCase());
+  const likedBy = (v: Venue) => likes.filter((l) => v.tags.some((t) => t.toLowerCase().includes(l)) || v.activity.toLowerCase().includes(l));
+  return venues
+    .flatMap((v) => times.map((startsAt) => ({ v, startsAt, liked: likedBy(v) })))
+    .filter(({ v, startsAt }) => myProblems({ ...v, venue: v.name, startsAt }, me).length === 0 && !mine.has(key(v.name, startsAt)))
+    .sort((a, b) => b.liked.length - a.liked.length || a.startsAt.getTime() - b.startsAt.getTime());
+}
+
 /**
  * A wingcat that follows fixed rules, with no language model. It lets the app run with no AI key.
- * The screens label it as rule-based; the recorded demo uses the model-driven brain.
+ * It is also what the model-driven brain falls back to when the model cannot be reached.
  */
 export class RuleBrain implements Brain {
   async decide({ me, proposals, venues, now }: Situation): Promise<Decision> {
@@ -51,22 +82,11 @@ export class RuleBrain implements Brain {
     const problems = theirs ? myProblems(theirs, me) : [];
     if (theirs && problems.length === 0) return { kind: 'accept', proposalId: theirs.id };
 
-    const key = (venue: string, at: Date) => `${venue}|${at.getTime()}`;
-    const mine = new Set(proposals.filter((p) => p.fromPersonId === me.id).map((p) => key(p.venue, p.startsAt)));
-    const times = prefs.freeSlots.map((s) => new Date(s.start.getTime() + 60 * 60 * 1000)).filter((t) => t.getTime() > now);
-    // If their time already works for my person, keep it: change as little as possible.
-    if (theirs && !problems.some((p) => p.includes("isn't free"))) times.unshift(theirs.startsAt);
-
-    const likes = (prefs.likes ?? []).map((l) => l.toLowerCase());
-    const likedBy = (v: Venue) => likes.filter((l) => v.tags.some((t) => t.toLowerCase().includes(l)) || v.activity.toLowerCase().includes(l));
-    const options = venues
-      .flatMap((v) => times.map((startsAt) => ({ v, startsAt })))
-      .filter(({ v, startsAt }) => myProblems({ ...v, venue: v.name, startsAt }, me).length === 0 && !mine.has(key(v.name, startsAt)))
-      .sort((a, b) => likedBy(b.v).length - likedBy(a.v).length || a.startsAt.getTime() - b.startsAt.getTime());
+    const options = optionsFor(me, proposals, venues, now);
     const best = options[0];
     if (!best) return { kind: 'stuck', why: `nothing left that suits ${me.name}` };
 
-    const liked = likedBy(best.v)[0];
+    const liked = best.liked[0];
     const pitch = `${best.v.activity} at ${best.v.name}${liked ? ` (${me.name} loves ${liked})` : ''}`;
     const reason = theirs ? `${capitalise(problems.join(' and '))}, so how about ${pitch}?` : `Opening offer: ${pitch}.`;
     return {

@@ -81,9 +81,15 @@ export function App() {
           <span className="mode sandbox" title="Holds are placed through the PayPal sandbox with test accounts. No real money moves.">PayPal sandbox: test money only</span>
         )}
         {state.paymentMode !== 'paypal_sandbox' && (
-          <span className="mode" title={practice ? 'No PayPal and no money involved. Holds are pretend, and the wingcats follow fixed rules, not AI.' : 'Holds cannot be placed until PayPal is connected.'}>
-            {practice ? 'Practice mode: pretend money, rule-based cats' : 'PayPal not connected'}
+          <span className="mode" title={practice ? 'No PayPal and no money involved. Holds are pretend.' : 'Holds cannot be placed until PayPal is connected.'}>
+            {practice ? 'Practice mode: pretend money' : 'PayPal not connected'}
           </span>
+        )}
+        {state.wingcatBrain === 'claude' && (
+          <span className="mode sandbox" title="Each wingcat asks Claude what to offer and why. Code still checks every offer against its person's limits.">Wingcats: Claude</span>
+        )}
+        {state.wingcatBrain === 'rules' && (
+          <span className="mode" title="The wingcats follow fixed rules, not AI. Add an Anthropic key to .env to have them ask Claude.">Wingcats: rule-based</span>
         )}
         {a && <button className="ghost" onClick={seed}>Start over</button>}
       </header>

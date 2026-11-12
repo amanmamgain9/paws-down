@@ -83,6 +83,8 @@ export interface Plan {
 export interface AppState {
   now: string;
   paymentMode: 'paypal_sandbox' | 'practice' | 'not_connected';
+  /** Which brain the wingcats say they are running. Missing until they have checked in. */
+  wingcatBrain?: 'claude' | 'rules';
   people: Person[];
   venues: Venue[];
   interests: Interest[];
