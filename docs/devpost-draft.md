@@ -4,7 +4,7 @@ Paste each section into the matching Devpost field. Items marked **TODO** need y
 
 ## Before you press submit
 
-1. Upload `video/paws-down-demo.mp4` to YouTube as Public or Unlisted, and paste the link under Links below. It is 2 minutes 54 seconds.
+1. The video is on YouTube (2 minutes 54 seconds): https://youtu.be/fT22QcrE3yE
 2. Prizes to enter: the main PayPal prizes and **Best Use of APIMatic**. Do not tick Bryntum, Render, AG Grid or Channel3: the project does not use them.
 3. Leave the live demo field empty. The app is not hosted; the README has one-command Docker instructions.
 4. After submitting, fill in the APIMatic claim form at the bottom of this page.
@@ -74,7 +74,7 @@ typescript, node.js, fastify, sqlite, react, vite, paypal, paypal-server-sdk, pa
 - Code: https://github.com/amanmamgain9/paws-down
 - SDK: https://github.com/amanmamgain9/paws-down-sdk-typescript
 - Context Plugin: https://github.com/amanmamgain9/paws-down-context-plugin
-- Video: **TODO** YouTube link
+- Video: https://youtu.be/fT22QcrE3yE
 - Live demo: none. To run it, see "Run it in two minutes" or "Run it as one container" in the README.
 
 ## Testing instructions

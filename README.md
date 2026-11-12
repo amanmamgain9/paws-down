@@ -4,6 +4,8 @@
 
 Built for the PayPal AI Hackathon.
 
+**Demo video (2 min 54 s):** https://youtu.be/fT22QcrE3yE
+
 ## How it works
 
 1. **Tell your wingcat what you want.** Free times, area, budget, likes, hard no's.
