@@ -6,7 +6,7 @@ Submitted on 12 Nov 2026: https://devpost.com/software/paws-down. This file is t
 
 1. The video is on YouTube (2 minutes 54 seconds): https://youtu.be/fT22QcrE3yE
 2. Prizes to enter: the main PayPal prizes and **Best Use of APIMatic**. Do not tick Bryntum, Render, AG Grid or Channel3: the project does not use them.
-3. Leave the live demo field empty. The app is not hosted; the README has one-command Docker instructions.
+3. Live demo: https://paws-down.onrender.com (a free Render web service built from this repo's Dockerfile, in practice mode).
 4. After submitting, fill in the APIMatic claim form at the bottom of this page.
 
 ## Project name
@@ -75,7 +75,7 @@ typescript, node.js, fastify, sqlite, react, vite, paypal, paypal-server-sdk, pa
 - SDK: https://github.com/amanmamgain9/paws-down-sdk-typescript
 - Context Plugin: https://github.com/amanmamgain9/paws-down-context-plugin
 - Video: https://youtu.be/fT22QcrE3yE
-- Live demo: none. To run it, see "Run it in two minutes" or "Run it as one container" in the README.
+- Live demo: https://paws-down.onrender.com (practice mode: pretend money and rule-based wingcats)
 
 ## Testing instructions
 
