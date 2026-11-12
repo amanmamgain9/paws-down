@@ -1,5 +1,6 @@
 import { PawsDownApiClient } from 'paws-down-api';
 import { RuleBrain, type Brain } from './brain.ts';
+import { checkHold, claudeWithTools, payPalLookOnly } from './hold-check.ts';
 import { LlmBrain } from './llm-brain.ts';
 
 /**
@@ -27,6 +28,34 @@ const brain: Brain = brainName === 'claude' ? new LlmBrain() : new RuleBrain();
 // The rule-based cats pause so their moves can be followed. Claude takes its own time to think.
 const THINKING_MS = Number(process.env.WINGCAT_THINKING_MS ?? (brainName === 'claude' ? 400 : 2500));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// With PayPal sandbox keys in .env, each wingcat also looks at its own person's hold on PayPal,
+// through PayPal's Agent Toolkit with only "get an order" switched on.
+const paypalId = process.env.PAYPAL_CLIENT_ID ?? '';
+const paypalSecret = process.env.PAYPAL_CLIENT_SECRET ?? '';
+const paypal = paypalId && paypalSecret && !paypalId.startsWith('your-') ? payPalLookOnly(paypalId, paypalSecret) : undefined;
+const askWithTools = brainName === 'claude' ? claudeWithTools() : undefined;
+const holdAttempts = new Map<string, number>();
+
+interface HeldDeposit {
+  id: string;
+  personId: string;
+  amount: number;
+  status: string;
+}
+
+/** Looks one hold up on PayPal and tells the server what the wingcat found, for that person's phone. */
+async function lookAtHold(deposit: HeldDeposit, person: { name: string; wingcatName: string }): Promise<void> {
+  const found = (await (await fetch(`${baseUrl}/demo/deposits/${deposit.id}/paypal-order`)).json()) as { orderId?: string };
+  if (!found.orderId) return;
+  const check = await checkHold({ wingcat: person.wingcatName, person: person.name, orderId: found.orderId, amount: deposit.amount }, paypal!, askWithTools);
+  await fetch(`${baseUrl}/demo/hold-checks`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ depositId: deposit.id, ok: check.ok, note: check.note, modelLooked: check.modelLooked }),
+  });
+  console.log(`${person.wingcatName} looked at ${person.name}'s hold on PayPal: ${check.ok ? 'held' : check.why}.`);
+}
 
 interface OpenNegotiation {
   id: string;
@@ -63,10 +92,27 @@ const stuck = new Set<string>();
 console.log(`Wingcats are watching ${baseUrl} (${brainName === 'claude' ? 'asking Claude' : 'rule-based brain'})`);
 for (;;) {
   try {
-    const state = (await (await fetch(`${baseUrl}/demo/state`)).json()) as { wingcatBrain?: string; negotiations: OpenNegotiation[]; proposals: { negotiationId: string }[] };
+    const state = (await (await fetch(`${baseUrl}/demo/state`)).json()) as {
+      wingcatBrain?: string;
+      paymentMode?: string;
+      negotiations: OpenNegotiation[];
+      proposals: { negotiationId: string }[];
+      people: { id: string; name: string; wingcatName: string }[];
+      plans: { deposits: HeldDeposit[] }[];
+      holdChecks?: Record<string, unknown>;
+    };
     // Tell the server which brain is running, so the screens can say so.
     if (state.wingcatBrain !== brainName) {
       await fetch(`${baseUrl}/demo/wingcats`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brain: brainName }) });
+    }
+    if (paypal && state.paymentMode === 'paypal_sandbox') {
+      for (const deposit of state.plans.flatMap((p) => p.deposits)) {
+        const tries = holdAttempts.get(deposit.id) ?? 0;
+        if (deposit.status !== 'held' || state.holdChecks?.[deposit.id] || tries >= 3) continue;
+        holdAttempts.set(deposit.id, tries + 1);
+        const person = state.people.find((p) => p.id === deposit.personId);
+        if (person) await lookAtHold(deposit, person);
+      }
     }
     for (const n of state.negotiations) {
       const round = state.proposals.filter((p) => p.negotiationId === n.id).length;

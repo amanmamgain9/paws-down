@@ -454,6 +454,11 @@ export class PawsDown {
     this.emit('deposit.created', `${this.getPerson(personId).name} is approving a $${plan.depositAmount} hold.`, { planId, depositId: id });
     return publicDeposit(deposit);
   }
+  /** The PayPal order behind a deposit. Only the wingcats' look-only check asks for this. */
+  paypalOrderId(depositId: string): string {
+    const deposit = this.store.list<DepositRecord>('deposit').find((d) => d.id === depositId) ?? notFound('deposit');
+    return deposit.orderId;
+  }
   confirmDeposit(planId: string, depositId: string): Promise<Deposit> {
     const running = this.confirming.get(depositId);
     if (running) return running;

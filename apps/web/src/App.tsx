@@ -267,7 +267,7 @@ function Phone({ me, partner, tone, state, act }: { me: Person; partner: Person;
         </>
       )}
 
-      {screen === 'date' && plan && other && <DateScreen me={me} other={other} plan={plan} now={state.now} practice={practice} lastOffer={proposals.at(-1)} act={act} />}
+      {screen === 'date' && plan && other && <DateScreen me={me} other={other} plan={plan} now={state.now} practice={practice} lastOffer={proposals.at(-1)} holdChecks={state.holdChecks} act={act} />}
     </section>
   );
 }
@@ -286,7 +286,8 @@ function Offer({ p, first, mine, me, other, tone, otherTone }: { p: Proposal; fi
 }
 
 /** Everything after the wingcats agree: say yes to the plan, put a paw down, check in, see the result. */
-function DateScreen({ me, other, plan, now, practice, lastOffer, act }: { me: Person; other: Person; plan: Plan; now: string; practice: boolean; lastOffer?: Proposal; act: Act }) {
+function DateScreen({ me, other, plan, now, practice, lastOffer, holdChecks, act }: { me: Person; other: Person; plan: Plan; now: string; practice: boolean; lastOffer?: Proposal; holdChecks?: AppState['holdChecks']; act: Act }) {
+  const myHoldCheck = holdChecks?.[plan.deposits.find((d) => d.personId === me.id)?.id ?? ''];
   const [code, setCode] = useState('');
   const [partnerCode, setPartnerCode] = useState('');
   const myDeposit = plan.deposits.find((d) => d.personId === me.id);
@@ -342,6 +343,13 @@ function DateScreen({ me, other, plan, now, practice, lastOffer, act }: { me: Pe
             <b>Paw down: ${myDeposit.amount} held{practice ? ' (pretend)' : ''}</b>
             <div className="sub">{plan.status === 'awaiting_deposits' ? `Waiting for ${other.name}'s paw.` : 'You get it back when you show up.'}</div>
           </div>
+        </div>
+      )}
+      {myHoldCheck && myDeposit?.status === 'held' && (
+        <div className={`holdcheck ${myHoldCheck.ok ? '' : 'bad'}`}>
+          <b>{myHoldCheck.ok ? '✓' : '!'} {me.wingcatName} checked with PayPal</b>
+          <div>{myHoldCheck.note}</div>
+          <div className="sub">Read-only look through the PayPal Agent Toolkit (get_order)</div>
         </div>
       )}
 

@@ -96,18 +96,33 @@ export async function buildServer(app: PawsDown, apiKey: string, webhooks?: Webh
     wingcatBrain = brain;
     return { brain };
   });
-  http.get('/demo/state', async () => ({ ...app.snapshot(), wingcatBrain, events: app.recentEvents() }));
+  // What each wingcat found when it looked at its person's hold on PayPal with the Agent Toolkit.
+  // This is the wingcat's own second look, shown on the phone. It does not change any state.
+  const holdChecks: Record<string, { ok: boolean; note: string; modelLooked: boolean; checkedAt: string }> = {};
+  const forgetHoldChecks = () => Object.keys(holdChecks).forEach((k) => delete holdChecks[k]);
+  http.get('/demo/deposits/:depositId/paypal-order', async (req) => ({ orderId: app.paypalOrderId((req.params as P).depositId!) }));
+  http.post('/demo/hold-checks', async (req) => {
+    const b = req.body as { depositId?: unknown; ok?: unknown; note?: unknown; modelLooked?: unknown };
+    if (typeof b?.depositId !== 'string' || typeof b.ok !== 'boolean' || typeof b.note !== 'string')
+      throw new ApiError(400, 'bad_request', 'depositId, ok and note are required.');
+    app.paypalOrderId(b.depositId); // 404 for a deposit that does not exist
+    holdChecks[b.depositId] = { ok: b.ok, note: b.note.slice(0, 300), modelLooked: b.modelLooked === true, checkedAt: new Date().toISOString() };
+    return holdChecks[b.depositId];
+  });
+  http.get('/demo/state', async () => ({ ...app.snapshot(), wingcatBrain, holdChecks, events: app.recentEvents() }));
   http.post('/demo/clock', async (req) => {
     await app.advanceClockTo((req.body as { to?: string })?.to ?? '');
     return { now: new Date(app.now()).toISOString() };
   });
   http.post('/demo/reset', async () => {
     app.reset();
+    forgetHoldChecks();
     return { ok: true };
   });
   // Creates the invented demo people.
   http.post('/demo/seed', async () => {
     app.reset();
+    forgetHoldChecks();
     // Maya and Jake are the two people the screens follow. Each sets up their own profile.
     const maya = app.createPerson({ name: 'Maya', wingcatName: 'Mochi' });
     const jake = app.createPerson({ name: 'Jake', wingcatName: 'Biscuit' });

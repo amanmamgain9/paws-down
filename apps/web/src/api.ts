@@ -85,6 +85,8 @@ export interface AppState {
   paymentMode: 'paypal_sandbox' | 'practice' | 'not_connected';
   /** Which brain the wingcats say they are running. Missing until they have checked in. */
   wingcatBrain?: 'claude' | 'rules';
+  /** What each wingcat found when it looked at a hold on PayPal itself, by deposit ID. */
+  holdChecks?: Record<string, { ok: boolean; note: string; modelLooked: boolean }>;
   people: Person[];
   venues: Venue[];
   interests: Interest[];
