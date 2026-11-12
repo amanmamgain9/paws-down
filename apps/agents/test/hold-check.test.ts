@@ -65,6 +65,12 @@ describe("a wingcat checking its person's hold", () => {
     expect(check).toMatchObject({ ok: true, modelLooked: true, note: 'I peeked at PayPal: your $5 is tucked away safely, not spent.' });
   });
 
+  it('shows the model\'s words as plain text, without Markdown marks or emoji', async () => {
+    const { paypal } = fakePayPal(order());
+    const check = await checkHold(input, paypal, modelThat(ORDER, 'Good news: your $5 is only **held**, not charged. 🐾'));
+    expect(check.note).toBe('Good news: your $5 is only held, not charged.');
+  });
+
   it('never lets the model call a bad hold good', async () => {
     const { paypal } = fakePayPal(order({}, { status: 'VOIDED' }));
     const check = await checkHold(input, paypal, modelThat(ORDER, 'All good, your $5 is held!'));
