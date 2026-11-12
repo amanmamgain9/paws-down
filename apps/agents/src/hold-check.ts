@@ -135,7 +135,8 @@ export async function checkHold(
         system: [
           `You are ${input.wingcat}, a cat who acts as ${input.person}'s wingcat on Paws Down, a dating app where both people put $${input.amount} down as a PayPal hold before a first date.`,
           `You can look at ${input.person}'s PayPal order with the get_order tool. You can only look. You cannot create, capture or void anything.`,
-          `Look the order up, then tell ${input.person} in one or two short sentences, warm and a little playful, what PayPal says about their hold. Say plainly whether the money is held or has been charged. Do not mention order IDs.`,
+          `Look the order up, then tell ${input.person} in one or two short sentences, warm and a little playful, what PayPal says about their hold. Say plainly whether the money is held or has been charged. Do not mention order IDs, dates, or how long the hold lasts.`,
+          `Plain text only: no Markdown, no asterisks, no emoji. At most 30 words.`,
         ].join('\n'),
         user: `${input.person} has just put a paw down. Their PayPal order ID is ${input.orderId}. Check it.`,
         tools: paypal.tools,
@@ -150,7 +151,13 @@ export async function checkHold(
   if (seen === undefined) seen = await paypal.call('get_order', { id: input.orderId });
 
   const verdict = judgeHold(seen, input);
-  const words = said?.trim().slice(0, 240);
+  // The phone shows plain text, so Markdown marks and emoji are taken out whatever the model sends.
+  const words = said
+    ?.replace(/[*_`#]/g, '')
+    .replace(/\p{Extended_Pictographic}|\uFE0F/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 240);
   const note = !verdict.ok
     ? `I could not confirm your hold with PayPal: ${verdict.why}.`
     : modelLooked && words

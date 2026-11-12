@@ -63,7 +63,7 @@ Agents that handle money are mostly a safety problem. The model is the easy part
 
 - **Real:** PayPal sandbox holds, voids and captures; Claude-driven negotiation; the generated SDK in the live flow.
 - **Simulated:** Maya and Jake are invented, both phones are on one screen, and a demo clock fast-forwards to date time.
-- **Not yet done:** webhooks have been tested with events we signed ourselves, not with a live PayPal event. The wingcat's Agent Toolkit check was added after the video was recorded, so the video does not show it; it has been run live on the two settled sandbox orders from the video.
+- **Not yet done:** webhooks have been tested with events we signed ourselves, not with a live PayPal event. The wingcat's Agent Toolkit check was added after the video was recorded, so the video does not show it. It has since been run live on the sandbox in two full dates; the README links a screenshot.
 
 ## Built with
 

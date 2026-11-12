@@ -160,10 +160,10 @@ npm test
 
 ## What is real and what is not
 
-- **Real:** PayPal sandbox holds, voids and captures. A full date has been run on the sandbox, ending with one void and one capture.
+- **Real:** PayPal sandbox holds, voids and captures. Full dates have been run on the sandbox with both endings: one void and one capture, and both holds voided.
 - **Simulated:** the people are invented, and the demo has a clock you can move forward to reach the date.
 - **Wingcats ask Claude when an Anthropic key is set, and follow fixed rules when it is not.** The screen says which, top right. See "How the wingcats decide" above for what has been run live.
-- **The wingcat's look at a hold has been run live only on settled orders.** On 12 Nov 2026 Claude called `get_order` through the Agent Toolkit on the two real sandbox orders from the demo video, after the date was settled, and code correctly reported one hold as voided and one as captured. The "still held" answer, and the line on the phone during a live sandbox date, are covered by tests and a practice-mode screen check, not yet by a live run. The demo video was recorded before this was added and does not show it.
+- **The wingcat's look at a hold has been run live.** On 12 Nov 2026 two full dates were run on the PayPal sandbox with Claude wingcats. Each time, both wingcats called `get_order` through the Agent Toolkit while the holds were active, code confirmed them, and the phones showed the result ([screenshot](docs/agent-toolkit-live.png)). Both dates ended with both people checked in and both holds voided. The same check, run on the two settled orders from the demo video, correctly reported one hold as voided and one as captured. The demo video was recorded before this was added and does not show it.
 - **Webhooks have not received a live PayPal event yet.** They are tested with events we signed ourselves in PayPal's documented format.
 - **A captured $5 stays with the platform** in this prototype. There is no payout between users.
 
