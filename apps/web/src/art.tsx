@@ -112,12 +112,12 @@ const PALETTES = [
   { bg: '#BFDDF7', ink: '#1B4F80' },
 ];
 const SKIN = ['#FFE9DF', '#F3CDB4', '#C99272'];
-/** Colours for a person's drawing. Alex and Sam match their phones; everyone else gets one by name. */
+/** Colours for a person's drawing. Maya and Jake match their phones; everyone else gets one by name. */
 export function paletteFor(name: string) {
-  return name === 'Alex' ? PALETTES[0]! : name === 'Sam' ? PALETTES[1]! : PALETTES[2 + (hash(name) % 3)]!;
+  return name === 'Maya' ? PALETTES[0]! : name === 'Jake' ? PALETTES[1]! : PALETTES[2 + (hash(name) % 3)]!;
 }
 
-const HAIR: Record<string, 'short' | 'long' | 'curly'> = { Alex: 'long', Sam: 'short', Jordan: 'long', Riley: 'curly', Casey: 'short' };
+const HAIR: Record<string, 'short' | 'long' | 'curly'> = { Maya: 'long', Jake: 'short', Jordan: 'long', Riley: 'curly', Casey: 'short' };
 
 /** A drawn stand-in for a profile photo, varied by name so people look different. */
 export function Avatar({ name }: { name: string }) {

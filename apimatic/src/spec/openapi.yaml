@@ -511,7 +511,7 @@ components:
         name:
           type: string
           description: The person's first name.
-          example: Alex
+          example: Maya
         wingcatName:
           type: string
           description: The name of the wingcat that negotiates for this person.
@@ -528,7 +528,7 @@ components:
         name:
           type: string
           description: The person's first name.
-          example: Alex
+          example: Maya
         wingcatName:
           type: string
           description: The name of this person's wingcat.
