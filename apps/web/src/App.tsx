@@ -183,7 +183,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
         <li><span className="dot">2</span><b>The cats haggle</b><span>Your two wingcats agree a time and a public place.</span></li>
         <li><span className="dot">3</span><b>Paws down</b><span>$5 each is held. Flake, and yours is kept.</span></li>
       </ol>
-      <button className="primary big" onClick={onStart}>Meet Alex and Sam</button>
+      <button className="primary big" onClick={onStart}>Meet Maya and Jake</button>
       <div className="hint">Two invented people. You play both of their phones, side by side.</div>
     </section>
   );

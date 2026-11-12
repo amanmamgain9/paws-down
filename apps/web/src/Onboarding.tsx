@@ -26,8 +26,8 @@ function slotOptions(now: string) {
 
 /** Starting answers for the two invented demo people. Everything is editable before saving. */
 const DEMO_ANSWERS: Record<string, { slots: number[]; areas: string[]; budget: number; no: string[]; intent: Intent; fun: string[] }> = {
-  Alex: { slots: [0, 1], areas: ['Downtown', 'Riverside'], budget: 30, no: ['cocktails'], intent: 'not_sure', fun: ['ramen', 'board games'] },
-  Sam: { slots: [1, 2], areas: ['Downtown'], budget: 25, no: ['ramen'], intent: 'serious', fun: ['vegetarian', 'live music'] },
+  Maya: { slots: [0, 1], areas: ['Downtown', 'Riverside'], budget: 30, no: ['cocktails'], intent: 'not_sure', fun: ['ramen', 'board games'] },
+  Jake: { slots: [1, 2], areas: ['Downtown'], budget: 25, no: ['ramen'], intent: 'serious', fun: ['vegetarian', 'live music'] },
 };
 
 export function Questionnaire({ me, venues, now, act }: { me: Person; venues: Venue[]; now: string; act: Act }) {

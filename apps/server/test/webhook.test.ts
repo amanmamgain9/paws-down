@@ -59,8 +59,8 @@ let gw: CountingGateway;
 let http: Awaited<ReturnType<typeof buildServer>>;
 let certFetches: string[];
 let planId: string;
-let alex: string;
-let sam: string;
+let maya: string;
+let jake: string;
 
 const post = (body: string, headers: Record<string, string>) => http.inject({ method: 'POST', url: '/webhooks/paypal', payload: body, headers });
 const event = (id: string, type: string, resource: unknown) => JSON.stringify({ id, event_type: type, resource });
@@ -82,18 +82,18 @@ beforeEach(async () => {
   // Two people with an approved plan, each with a $5 order waiting for approval at PayPal.
   const start = Date.now() + 24 * 3_600_000;
   const prefs = { freeSlots: [{ start: new Date(start - 3_600_000).toISOString(), end: new Date(start + 3 * 3_600_000).toISOString() }], maxBudget: 30, areas: ['Downtown'], dealbreakers: [] };
-  alex = app.createPerson({ name: 'Alex', wingcatName: 'Mochi' }).id;
-  sam = app.createPerson({ name: 'Sam', wingcatName: 'Biscuit' }).id;
-  for (const p of [alex, sam]) app.setPreferences(p, prefs);
-  app.setInterest({ fromPersonId: alex, toPersonId: sam, interested: true });
-  app.setInterest({ fromPersonId: sam, toPersonId: alex, interested: true });
-  const n = app.startNegotiation({ personAId: alex, personBId: sam });
-  const p = app.makeProposal(n.id, { fromPersonId: alex, startsAt: new Date(start).toISOString(), venue: 'Green Bowl', area: 'Downtown', activity: 'Vegetarian dinner', costPerPerson: 22, reason: 'Fits you both.' });
-  planId = app.acceptProposal(n.id, p.id, sam).id;
-  app.approvePlan(planId, { personId: alex, approved: true });
-  app.approvePlan(planId, { personId: sam, approved: true });
-  await app.createDeposit(planId, alex); // ORDER-1
-  await app.createDeposit(planId, sam); // ORDER-2
+  maya = app.createPerson({ name: 'Maya', wingcatName: 'Mochi' }).id;
+  jake = app.createPerson({ name: 'Jake', wingcatName: 'Biscuit' }).id;
+  for (const p of [maya, jake]) app.setPreferences(p, prefs);
+  app.setInterest({ fromPersonId: maya, toPersonId: jake, interested: true });
+  app.setInterest({ fromPersonId: jake, toPersonId: maya, interested: true });
+  const n = app.startNegotiation({ personAId: maya, personBId: jake });
+  const p = app.makeProposal(n.id, { fromPersonId: maya, startsAt: new Date(start).toISOString(), venue: 'Green Bowl', area: 'Downtown', activity: 'Vegetarian dinner', costPerPerson: 22, reason: 'Fits you both.' });
+  planId = app.acceptProposal(n.id, p.id, jake).id;
+  app.approvePlan(planId, { personId: maya, approved: true });
+  app.approvePlan(planId, { personId: jake, approved: true });
+  await app.createDeposit(planId, maya); // ORDER-1
+  await app.createDeposit(planId, jake); // ORDER-2
 });
 
 const statusOf = (personId: string) => app.getPlan(planId).deposits.find((d) => d.personId === personId)?.status;
@@ -104,7 +104,7 @@ describe('a real PayPal event', () => {
     const res = await post(body, signed(body));
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ outcome: 'handled' });
-    expect(statusOf(alex)).toBe('held');
+    expect(statusOf(maya)).toBe('held');
     expect(gw.holds).toBe(1);
   });
 
@@ -121,17 +121,17 @@ describe('a real PayPal event', () => {
     const body = event('WH-EV-1', 'CHECKOUT.ORDER.APPROVED', { id: 'ORDER-1' });
     await Promise.all([post(body, signed(body)), app.confirmDepositForOrder('ORDER-1')]);
     expect(gw.holds).toBe(1);
-    expect(messages().filter((m) => m.includes("Alex's $5 is held"))).toHaveLength(1);
+    expect(messages().filter((m) => m.includes("Maya's $5 is held"))).toHaveLength(1);
   });
 
   it('answers 500 so PayPal retries when the hold could not be placed, then succeeds on the retry', async () => {
     gw.failNext = true;
     const body = event('WH-EV-1', 'CHECKOUT.ORDER.APPROVED', { id: 'ORDER-1' });
     expect((await post(body, signed(body))).statusCode).toBeGreaterThanOrEqual(500);
-    expect(statusOf(alex)).toBe('awaiting_approval');
+    expect(statusOf(maya)).toBe('awaiting_approval');
     const retry = await post(body, signed(body));
     expect(retry.json()).toEqual({ outcome: 'handled' });
-    expect(statusOf(alex)).toBe('held');
+    expect(statusOf(maya)).toBe('held');
   });
 
   it('writes PayPal\'s confirmation of a release and a capture to the feed', async () => {
@@ -141,8 +141,8 @@ describe('a real PayPal event', () => {
     const captured = event('WH-EV-3', 'PAYMENT.CAPTURE.COMPLETED', { id: 'CAP-9', supplementary_data: { related_ids: { authorization_id: 'AUTH-ORDER-2' } } });
     expect((await post(voided, signed(voided))).json()).toEqual({ outcome: 'handled' });
     expect((await post(captured, signed(captured))).json()).toEqual({ outcome: 'handled' });
-    expect(messages()).toContain("PayPal confirmed: Alex's $5 hold was released.");
-    expect(messages()).toContain("PayPal confirmed: Sam's $5 was captured.");
+    expect(messages()).toContain("PayPal confirmed: Maya's $5 hold was released.");
+    expect(messages()).toContain("PayPal confirmed: Jake's $5 was captured.");
   });
 
   it('accepts but ignores events about orders it does not know', async () => {
@@ -170,7 +170,7 @@ describe('a forged or damaged event', () => {
     expect(res.json().code).toBe('bad_signature');
     expect(res.json().message).toMatch(why);
     expect(gw.holds).toBe(0);
-    expect(statusOf(alex)).toBe('awaiting_approval');
+    expect(statusOf(maya)).toBe('awaiting_approval');
   };
 
   it('is refused when it has no signature at all', async () => {

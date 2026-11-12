@@ -17,9 +17,9 @@ const venues = [
   { name: 'Gold Room', area: 'Uptown', activity: 'Cocktails', costPerPerson: 45, tags: ['cocktails'] },
 ] as unknown as Venue[];
 
-const sam = {
-  id: 'sam',
-  name: 'Sam',
+const jake = {
+  id: 'jake',
+  name: 'Jake',
   wingcatName: 'Biscuit',
   showUpRecord: { showedUp: 0, dates: 0 },
   preferences: { freeSlots: [{ start: at(17), end: at(22) }], maxBudget: 30, areas: ['Downtown'], likes: ['vegetarian'], dealbreakers: ['cocktails'], intent: 'serious' },
@@ -28,7 +28,7 @@ const sam = {
 const offer = (id: string, from: string, venue: string, hour: number, cost: number, area = 'Downtown'): Proposal =>
   ({ id, negotiationId: 'n1', fromPersonId: from, startsAt: at(hour), venue, area, activity: venue, costPerPerson: cost, reason: 'How about this?', round: 1 }) as unknown as Proposal;
 
-const situation = (proposals: Proposal[]): Situation => ({ me: sam, proposals, venues, now: NOW });
+const situation = (proposals: Proposal[]): Situation => ({ me: jake, proposals, venues, now: NOW });
 
 /** A brain whose model always gives the same answer, and which records what it was asked. */
 function brainSaying(answer: Move | null | Error) {
@@ -44,26 +44,26 @@ function brainSaying(answer: Move | null | Error) {
 
 describe('the model-driven wingcat', () => {
   it('offers the option the model picked, with the model\'s own words as the reason', async () => {
-    const { brain } = brainSaying({ action: 'propose', option: 1, reason: 'Sam purrs for a quiet veggie dinner.' });
+    const { brain } = brainSaying({ action: 'propose', option: 1, reason: 'Jake purrs for a quiet veggie dinner.' });
     const d = await brain.decide(situation([]));
-    expect(d).toMatchObject({ kind: 'propose', proposal: { venue: 'Green Bowl', costPerPerson: 22, reason: 'Sam purrs for a quiet veggie dinner.' } });
+    expect(d).toMatchObject({ kind: 'propose', proposal: { venue: 'Green Bowl', costPerPerson: 22, reason: 'Jake purrs for a quiet veggie dinner.' } });
   });
 
   it('accepts an offer that fits its person when the model says accept', async () => {
     const { brain } = brainSaying({ action: 'accept', option: null, reason: 'Ramen it is.' });
-    const d = await brain.decide(situation([offer('p1', 'alex', 'Koji Ramen Bar', 19, 18)]));
+    const d = await brain.decide(situation([offer('p1', 'maya', 'Koji Ramen Bar', 19, 18)]));
     expect(d).toEqual({ kind: 'accept', proposalId: 'p1' });
   });
 
   it('may counter an offer that fits, when the model thinks another option is better', async () => {
-    const { brain } = brainSaying({ action: 'propose', option: 1, reason: 'Close, but Sam would love the veggie place more.' });
-    const d = await brain.decide(situation([offer('p1', 'alex', 'Koji Ramen Bar', 19, 18)]));
+    const { brain } = brainSaying({ action: 'propose', option: 1, reason: 'Close, but Jake would love the veggie place more.' });
+    const d = await brain.decide(situation([offer('p1', 'maya', 'Koji Ramen Bar', 19, 18)]));
     expect(d).toMatchObject({ kind: 'propose', proposal: { venue: 'Green Bowl' } });
   });
 
   it('never accepts an offer its person would refuse, even if the model says accept', async () => {
     const { brain, logs } = brainSaying({ action: 'accept', option: null, reason: 'Sure, cocktails!' });
-    const d = await brain.decide(situation([offer('p1', 'alex', 'Gold Room', 19, 45, 'Uptown')]));
+    const d = await brain.decide(situation([offer('p1', 'maya', 'Gold Room', 19, 45, 'Uptown')]));
     expect(d.kind).toBe('propose');
     expect((d as any).proposal.venue).not.toBe('Gold Room');
     expect(logs.join(' ')).toMatch(/not a move it is allowed to make/);
@@ -109,14 +109,14 @@ describe('the model-driven wingcat', () => {
 
   it('is told to stop haggling once the negotiation has run long', async () => {
     const { brain, asked } = brainSaying({ action: 'accept', option: null, reason: 'Deal.' });
-    const history = [offer('p1', 'alex', 'Koji Ramen Bar', 18, 18), offer('p2', 'sam', 'Green Bowl', 18, 22), offer('p3', 'alex', 'Koji Ramen Bar', 20, 18), offer('p4', 'sam', 'Green Bowl', 20, 22), offer('p5', 'alex', 'Koji Ramen Bar', 19, 18)];
+    const history = [offer('p1', 'maya', 'Koji Ramen Bar', 18, 18), offer('p2', 'jake', 'Green Bowl', 18, 22), offer('p3', 'maya', 'Koji Ramen Bar', 20, 18), offer('p4', 'jake', 'Green Bowl', 20, 22), offer('p5', 'maya', 'Koji Ramen Bar', 19, 18)];
     await brain.decide(situation(history));
     expect(asked[0]!.user).toContain('This has gone on long enough. Accept it.');
   });
 
   it('says it is stuck, without asking the model, when nothing fits', async () => {
     const { brain, asked } = brainSaying({ action: 'propose', option: 1, reason: 'x' });
-    const broke = { ...sam, preferences: { ...sam.preferences!, maxBudget: 1 } } as Person;
+    const broke = { ...jake, preferences: { ...jake.preferences!, maxBudget: 1 } } as Person;
     const d = await brain.decide({ me: broke, proposals: [], venues, now: NOW });
     expect(d.kind).toBe('stuck');
     expect(asked).toHaveLength(0);

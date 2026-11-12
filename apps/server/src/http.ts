@@ -108,9 +108,9 @@ export async function buildServer(app: PawsDown, apiKey: string, webhooks?: Webh
   // Creates the invented demo people.
   http.post('/demo/seed', async () => {
     app.reset();
-    // Alex and Sam are the two people the screens follow. Each sets up their own profile.
-    const alex = app.createPerson({ name: 'Alex', wingcatName: 'Mochi' });
-    const sam = app.createPerson({ name: 'Sam', wingcatName: 'Biscuit' });
+    // Maya and Jake are the two people the screens follow. Each sets up their own profile.
+    const maya = app.createPerson({ name: 'Maya', wingcatName: 'Mochi' });
+    const jake = app.createPerson({ name: 'Jake', wingcatName: 'Biscuit' });
     // Three more people who already have profiles, so there is someone to swipe past.
     const slot = (days: number, hour: number, hours: number) => {
       const start = new Date(app.now());
@@ -124,7 +124,7 @@ export async function buildServer(app: PawsDown, apiKey: string, webhooks?: Webh
       { name: 'Casey', wingcatName: 'Noodle', prefs: { freeSlots: [slot(1, 18, 3)], maxBudget: 30, areas: ['Downtown', 'Riverside'], likes: ['pizza', 'live music'], dealbreakers: ['cocktails'], intent: 'serious' as const } },
     ];
     for (const o of others) app.setPreferences(app.createPerson(o).id, o.prefs);
-    return { alexId: alex.id, samId: sam.id };
+    return { mayaId: maya.id, jakeId: jake.id };
   });
   // PayPal webhooks. This route keeps the body as raw bytes, because the signature covers the
   // exact bytes PayPal sent. Nothing is trusted, or even parsed, until the signature checks out.

@@ -40,8 +40,8 @@ const at = (ms: number) => new Date(ms).toISOString();
 
 let app: PawsDown;
 let gw: FakeGateway;
-let alex: string;
-let sam: string;
+let maya: string;
+let jake: string;
 let dateTime: string;
 
 function prefs(over: Partial<Preferences> = {}): Preferences {
@@ -67,12 +67,12 @@ function proposal(from: string, over: Partial<NewProposal> = {}): NewProposal {
   };
 }
 async function lockedPlan() {
-  const n = app.startNegotiation({ personAId: alex, personBId: sam });
-  const p = app.makeProposal(n.id, proposal(alex));
-  const plan = app.acceptProposal(n.id, p.id, sam);
-  app.approvePlan(plan.id, { personId: alex, approved: true });
-  app.approvePlan(plan.id, { personId: sam, approved: true });
-  for (const person of [alex, sam]) {
+  const n = app.startNegotiation({ personAId: maya, personBId: jake });
+  const p = app.makeProposal(n.id, proposal(maya));
+  const plan = app.acceptProposal(n.id, p.id, jake);
+  app.approvePlan(plan.id, { personId: maya, approved: true });
+  app.approvePlan(plan.id, { personId: jake, approved: true });
+  for (const person of [maya, jake]) {
     const d = await app.createDeposit(plan.id, person);
     await app.confirmDeposit(plan.id, d.id);
   }
@@ -84,19 +84,19 @@ beforeEach(() => {
   gw = new FakeGateway();
   app = new PawsDown(new Store(), gw);
   dateTime = at(Date.now() + 24 * HOUR);
-  alex = app.createPerson({ name: 'Alex', wingcatName: 'Mochi' }).id;
-  sam = app.createPerson({ name: 'Sam', wingcatName: 'Biscuit' }).id;
-  app.setPreferences(alex, prefs());
-  app.setPreferences(sam, prefs({ dealbreakers: ['ramen'] }));
-  app.setInterest({ fromPersonId: alex, toPersonId: sam, interested: true });
-  app.setInterest({ fromPersonId: sam, toPersonId: alex, interested: true });
+  maya = app.createPerson({ name: 'Maya', wingcatName: 'Mochi' }).id;
+  jake = app.createPerson({ name: 'Jake', wingcatName: 'Biscuit' }).id;
+  app.setPreferences(maya, prefs());
+  app.setPreferences(jake, prefs({ dealbreakers: ['ramen'] }));
+  app.setInterest({ fromPersonId: maya, toPersonId: jake, interested: true });
+  app.setInterest({ fromPersonId: jake, toPersonId: maya, interested: true });
 });
 
 describe('before negotiating', () => {
   it('needs both people to say yes', () => {
-    app.setInterest({ fromPersonId: sam, toPersonId: alex, interested: false });
+    app.setInterest({ fromPersonId: jake, toPersonId: maya, interested: false });
     try {
-      app.startNegotiation({ personAId: alex, personBId: sam });
+      app.startNegotiation({ personAId: maya, personBId: jake });
       expect.unreachable();
     } catch (e) {
       expect(code(e)).toBe('not_mutual');
@@ -104,31 +104,31 @@ describe('before negotiating', () => {
   });
 
   it('does not announce who passed', () => {
-    app.setInterest({ fromPersonId: sam, toPersonId: alex, interested: false });
-    expect(app.recentEvents().at(-1)?.message).not.toMatch(/Sam|Alex/);
+    app.setInterest({ fromPersonId: jake, toPersonId: maya, interested: false });
+    expect(app.recentEvents().at(-1)?.message).not.toMatch(/Jake|Maya/);
   });
 
   it('will not pair serious with casual, but not_sure fits either', () => {
-    app.setPreferences(alex, prefs({ intent: 'serious' }));
-    app.setPreferences(sam, prefs({ intent: 'casual' }));
-    expect(() => app.startNegotiation({ personAId: alex, personBId: sam })).toThrowError(/different things/);
-    app.setPreferences(sam, prefs({ intent: 'not_sure' }));
-    expect(app.startNegotiation({ personAId: alex, personBId: sam }).status).toBe('open');
+    app.setPreferences(maya, prefs({ intent: 'serious' }));
+    app.setPreferences(jake, prefs({ intent: 'casual' }));
+    expect(() => app.startNegotiation({ personAId: maya, personBId: jake })).toThrowError(/different things/);
+    app.setPreferences(jake, prefs({ intent: 'not_sure' }));
+    expect(app.startNegotiation({ personAId: maya, personBId: jake }).status).toBe('open');
   });
 });
 
 describe('negotiation', () => {
   it('enforces turns', () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    expect(() => app.makeProposal(n.id, proposal(sam))).toThrowError(/turn/);
-    app.makeProposal(n.id, proposal(alex));
-    expect(() => app.makeProposal(n.id, proposal(alex))).toThrowError(/turn/);
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    expect(() => app.makeProposal(n.id, proposal(jake))).toThrowError(/turn/);
+    app.makeProposal(n.id, proposal(maya));
+    expect(() => app.makeProposal(n.id, proposal(maya))).toThrowError(/turn/);
   });
 
   it("stops a wingcat proposing outside its own person's limits", () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
     try {
-      app.makeProposal(n.id, proposal(alex, { costPerPerson: 80 }));
+      app.makeProposal(n.id, proposal(maya, { costPerPerson: 80 }));
       expect.unreachable();
     } catch (e) {
       expect(code(e)).toBe('outside_own_limits');
@@ -136,10 +136,10 @@ describe('negotiation', () => {
   });
 
   it("refuses an acceptance that breaks the other person's limits", () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    const p = app.makeProposal(n.id, proposal(alex, { venue: 'Koji Ramen Bar', activity: 'Ramen dinner' }));
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    const p = app.makeProposal(n.id, proposal(maya, { venue: 'Koji Ramen Bar', activity: 'Ramen dinner' }));
     try {
-      app.acceptProposal(n.id, p.id, sam);
+      app.acceptProposal(n.id, p.id, jake);
       expect.unreachable();
     } catch (e) {
       expect(code(e)).toBe('outside_limits');
@@ -148,16 +148,16 @@ describe('negotiation', () => {
   });
 
   it('fails after the last round', () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    for (let i = 0; i < n.maxRounds; i++) app.makeProposal(n.id, proposal(i % 2 ? sam : alex));
-    expect(() => app.makeProposal(n.id, proposal(alex))).toThrowError(/rounds/);
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    for (let i = 0; i < n.maxRounds; i++) app.makeProposal(n.id, proposal(i % 2 ? jake : maya));
+    expect(() => app.makeProposal(n.id, proposal(maya))).toThrowError(/rounds/);
     expect(app.getNegotiation(n.id).status).toBe('failed');
   });
 
   it('only allows public venues from the list', () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
     try {
-      app.makeProposal(n.id, proposal(alex, { venue: "Alex's flat" }));
+      app.makeProposal(n.id, proposal(maya, { venue: "Maya's flat" }));
       expect.unreachable();
     } catch (e) {
       expect(code(e)).toBe('unknown_venue');
@@ -165,18 +165,18 @@ describe('negotiation', () => {
   });
 
   it('does not let the proposer accept their own proposal', () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    const p = app.makeProposal(n.id, proposal(alex));
-    expect(() => app.acceptProposal(n.id, p.id, alex)).toThrowError(/other person/);
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    const p = app.makeProposal(n.id, proposal(maya));
+    expect(() => app.acceptProposal(n.id, p.id, maya)).toThrowError(/other person/);
   });
 });
 
 describe('plan and deposits', () => {
   it('one rejection cancels the plan and holds no money', () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(alex)).id, sam);
-    app.approvePlan(plan.id, { personId: alex, approved: true });
-    expect(app.approvePlan(plan.id, { personId: sam, approved: false }).status).toBe('cancelled');
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(maya)).id, jake);
+    app.approvePlan(plan.id, { personId: maya, approved: true });
+    expect(app.approvePlan(plan.id, { personId: jake, approved: false }).status).toBe('cancelled');
     expect(gw.calls).toEqual([]);
   });
 
@@ -188,13 +188,13 @@ describe('plan and deposits', () => {
   });
 
   it('reports a PayPal failure as a 502 and stays retryable', async () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(alex)).id, sam);
-    app.approvePlan(plan.id, { personId: alex, approved: true });
-    app.approvePlan(plan.id, { personId: sam, approved: true });
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(maya)).id, jake);
+    app.approvePlan(plan.id, { personId: maya, approved: true });
+    app.approvePlan(plan.id, { personId: jake, approved: true });
     gw.failNext = true;
-    await expect(app.createDeposit(plan.id, alex)).rejects.toMatchObject({ status: 502 });
-    const d = await app.createDeposit(plan.id, alex);
+    await expect(app.createDeposit(plan.id, maya)).rejects.toMatchObject({ status: 502 });
+    const d = await app.createDeposit(plan.id, maya);
     expect(d.status).toBe('awaiting_approval');
   });
 });
@@ -203,9 +203,9 @@ describe('settlement', () => {
   it('releases both holds when both show up', async () => {
     const plan = await lockedPlan();
     await app.advanceClockTo(plan.checkInOpensAt);
-    const samCode = app.getCheckInCode(plan.id, sam).code;
-    expect(app.checkIn(plan.id, { personId: alex, partnerCode: samCode }).confirmedWithPartnerCode).toBe(true);
-    app.checkIn(plan.id, { personId: sam });
+    const samCode = app.getCheckInCode(plan.id, jake).code;
+    expect(app.checkIn(plan.id, { personId: maya, partnerCode: samCode }).confirmedWithPartnerCode).toBe(true);
+    app.checkIn(plan.id, { personId: jake });
     await app.advanceClockTo(at(Date.parse(plan.checkInClosesAt) + 1000));
     const s = app.getSettlement(plan.id);
     expect(s.outcome).toBe('both_showed');
@@ -216,12 +216,12 @@ describe('settlement', () => {
   it("captures only the no-show's hold", async () => {
     const plan = await lockedPlan();
     await app.advanceClockTo(plan.checkInOpensAt);
-    app.checkIn(plan.id, { personId: alex });
+    app.checkIn(plan.id, { personId: maya });
     await app.advanceClockTo(at(Date.parse(plan.checkInClosesAt) + 1000));
     const s = app.getSettlement(plan.id);
     expect(s.outcome).toBe('one_no_show');
-    expect(s.results.find((r) => r.personId === sam)?.depositStatus).toBe('captured');
-    expect(s.results.find((r) => r.personId === alex)?.depositStatus).toBe('released');
+    expect(s.results.find((r) => r.personId === jake)?.depositStatus).toBe('captured');
+    expect(s.results.find((r) => r.personId === maya)?.depositStatus).toBe('released');
   });
 
   it('settles exactly once', async () => {
@@ -237,8 +237,8 @@ describe('settlement', () => {
   it('retries settlement after a PayPal failure without double-acting', async () => {
     const plan = await lockedPlan();
     await app.advanceClockTo(plan.checkInOpensAt);
-    app.checkIn(plan.id, { personId: alex });
-    app.checkIn(plan.id, { personId: sam });
+    app.checkIn(plan.id, { personId: maya });
+    app.checkIn(plan.id, { personId: jake });
     gw.failNext = true;
     await app.advanceClockTo(at(Date.parse(plan.checkInClosesAt) + 1000));
     expect(app.getPlan(plan.id).status).toBe('locked');
@@ -249,24 +249,24 @@ describe('settlement', () => {
 
   it('rejects a wrong partner code and check-in outside the window', async () => {
     const plan = await lockedPlan();
-    expect(() => app.checkIn(plan.id, { personId: alex })).toThrowError(/not open/);
+    expect(() => app.checkIn(plan.id, { personId: maya })).toThrowError(/not open/);
     await app.advanceClockTo(plan.checkInOpensAt);
-    expect(() => app.checkIn(plan.id, { personId: alex, partnerCode: 'NOPE-0000' })).toThrowError(/code/);
+    expect(() => app.checkIn(plan.id, { personId: maya, partnerCode: 'NOPE-0000' })).toThrowError(/code/);
   });
 
   it('releases both holds on a cancel before the cut-off', async () => {
     const plan = await lockedPlan();
-    const cancelled = await app.cancelPlan(plan.id, sam);
+    const cancelled = await app.cancelPlan(plan.id, jake);
     expect(cancelled.status).toBe('cancelled');
     expect(cancelled.deposits.map((d) => d.status)).toEqual(['released', 'released']);
   });
 
   it('calls the date off if only one hold is placed by the cut-off', async () => {
-    const n = app.startNegotiation({ personAId: alex, personBId: sam });
-    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(alex)).id, sam);
-    app.approvePlan(plan.id, { personId: alex, approved: true });
-    app.approvePlan(plan.id, { personId: sam, approved: true });
-    const d = await app.createDeposit(plan.id, alex);
+    const n = app.startNegotiation({ personAId: maya, personBId: jake });
+    const plan = app.acceptProposal(n.id, app.makeProposal(n.id, proposal(maya)).id, jake);
+    app.approvePlan(plan.id, { personId: maya, approved: true });
+    app.approvePlan(plan.id, { personId: jake, approved: true });
+    const d = await app.createDeposit(plan.id, maya);
     await app.confirmDeposit(plan.id, d.id);
     await app.advanceClockTo(at(Date.parse(plan.cancelBy) + 1000));
     const after = app.getPlan(plan.id);
