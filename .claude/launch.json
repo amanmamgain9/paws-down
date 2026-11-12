@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "practice-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "practice:server"
+      ],
+      "port": 4000
+    },
+    {
+      "name": "sandbox-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "sandbox:server"
+      ],
+      "port": 4000
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "web"
+      ],
+      "port": 5173
+    }
+  ]
+}
