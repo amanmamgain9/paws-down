@@ -82,7 +82,7 @@ Open http://localhost:4000. With no PayPal credentials it runs in practice mode.
 | Folder | What it is |
 | --- | --- |
 | `apps/server` | The backend: plans, holds, check-ins, settlement, webhooks. Fastify and SQLite. |
-| `apps/agents` | The wingcats. They talk to the server only through the generated SDK. |
+| `apps/agents` | The wingcats. They act on the server only through the generated SDK, and can look at a PayPal order through PayPal's Agent Toolkit. |
 | `apps/web` | The two people's screens. React and Vite. |
 | `apimatic/src/spec` | The Paws Down OpenAPI spec. |
 | `apimatic/src/plugin-config.json` | The config APIMatic uses to generate our Context Plugin. |
@@ -121,6 +121,17 @@ All payment code uses the PayPal Server SDK (`@paypal/paypal-server-sdk`), in `a
 - The server decides when money moves, from check-in records. An agent saying "they showed up" moves nothing.
 - Webhooks are verified on the server before anything is trusted. See [docs/paypal-webhooks.md](docs/paypal-webhooks.md).
 
+### The wingcat's own look at the hold
+
+Each wingcat also has one PayPal tool of its own, from the PayPal Agent Toolkit (`@paypal/agent-toolkit`): `get_order`. The toolkit is set up with only that action switched on, so a wingcat can look at an order and has no tool that creates, captures or voids anything. The code is in `apps/agents/src/hold-check.ts`.
+
+1. When its person's $5 is held, the wingcat asks Claude to check the order. Claude calls `get_order`.
+2. Code lets it look up only its own person's order, and refuses any other tool.
+3. Code reads PayPal's answer and decides: it must be the right order, authorize-only, $5.00 in USD, and still held.
+4. If that passes, the person sees the wingcat's own sentence on their phone. If it fails, they see a plain warning written by code, never by the model.
+
+This is a second look, shown to the person. It does not gate the date: the server already knows the hold was placed, because it placed it. Without an Anthropic key the wingcat still looks, through the same toolkit, and uses a fixed sentence. In practice mode there is no PayPal order, so the check is skipped.
+
 ## How APIMatic is used
 
 - **We consume PayPal through APIMatic's PayPal Context Plugin.** The payment code was written with the plugin's skills guiding the coding agent. See [docs/apimatic/paypal-context-plugin.md](docs/apimatic/paypal-context-plugin.md).
@@ -145,13 +156,14 @@ Checked on 12 Nov 2026: the install command above, run in an empty folder, insta
 npm test
 ```
 
-64 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), forged webhooks, and the limits on what a wingcat may do whatever the model answers.
+70 tests cover the date rules, the PayPal calls (including timeouts, 5xx errors and repeated requests), forged webhooks, the limits on what a wingcat may do whatever the model answers, and the wingcat's look at a hold (it cannot call a voided or captured hold good, and cannot look at anyone else's order).
 
 ## What is real and what is not
 
 - **Real:** PayPal sandbox holds, voids and captures. A full date has been run on the sandbox, ending with one void and one capture.
 - **Simulated:** the people are invented, and the demo has a clock you can move forward to reach the date.
 - **Wingcats ask Claude when an Anthropic key is set, and follow fixed rules when it is not.** The screen says which, top right. See "How the wingcats decide" above for what has been run live.
+- **The wingcat's look at a hold has been run live only on settled orders.** On 12 Nov 2026 Claude called `get_order` through the Agent Toolkit on the two real sandbox orders from the demo video, after the date was settled, and code correctly reported one hold as voided and one as captured. The "still held" answer, and the line on the phone during a live sandbox date, are covered by tests and a practice-mode screen check, not yet by a live run. The demo video was recorded before this was added and does not show it.
 - **Webhooks have not received a live PayPal event yet.** They are tested with events we signed ourselves in PayPal's documented format.
 - **A captured $5 stays with the platform** in this prototype. There is no payout between users.
 
