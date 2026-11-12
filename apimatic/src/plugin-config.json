@@ -1,0 +1,12 @@
+{
+  "pluginId": "paws-down",
+  "pluginName": "Paws Down",
+  "pluginVersion": "0.1.0",
+  "license": "MIT",
+  "languages": {
+    "typescript": {
+      "source": { "repositoryUrl": "https://github.com/amanmamgain9/paws-down-sdk-typescript", "branch": "main" },
+      "codegenVersion": "v4"
+    }
+  }
+}
