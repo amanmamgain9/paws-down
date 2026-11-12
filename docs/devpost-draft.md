@@ -25,6 +25,7 @@ Everyone has been stood up, and it costs the person who flaked nothing. A small 
 ## How we built it
 
 - **PayPal:** the PayPal Server SDK with Orders v2 `AUTHORIZE`, then void or capture. Every call carries a `PayPal-Request-Id`, so retries never double-charge. Webhooks are verified on the server.
+- **An agent with a PayPal tool that can only look:** each wingcat has one tool from the PayPal Agent Toolkit, `get_order`, with every other action switched off. When its person's $5 is held, the wingcat asks Claude to check the order with PayPal and tell its person what it found. Code allows only that person's order, and code, not the model, decides whether the hold is really there.
 - **Agents with limits:** Claude chooses the offer and writes the reason, but code builds the list of dates that fit that person, and the model picks from it by number. A wingcat cannot invent a venue, accept something its person would refuse, or see the other person's preferences. Money moves only from check-in records, never because an agent said so.
 - **APIMatic, both directions:** the payment code was written with APIMatic's PayPal Context Plugin guiding the coding agent. We then wrote an OpenAPI spec for our own API, generated a TypeScript SDK with APIMatic, and generated our own Context Plugin from it, so anyone's coding agent can build a new wingcat with one install command.
 - **Stack:** TypeScript, Node 24, Fastify, SQLite, React, Vite, the Anthropic SDK, Vitest.
@@ -38,7 +39,7 @@ Everyone has been stood up, and it costs the person who flaked nothing. A small 
 ## Accomplishments that we're proud of
 
 - A full date run on the real PayPal sandbox, ending with one void and one capture.
-- 64 automated tests, including PayPal timeouts and 5xx errors, forged webhooks, and a wingcat that stays inside its limits whatever the model answers.
+- 70 automated tests, including PayPal timeouts and 5xx errors, forged webhooks, and a wingcat that stays inside its limits whatever the model answers.
 - A published SDK and Context Plugin for our own API.
 
 ## What we learned
@@ -55,11 +56,11 @@ Agents that handle money are mostly a safety problem. The model is the easy part
 
 - **Real:** PayPal sandbox holds, voids and captures; Claude-driven negotiation; the generated SDK in the live flow.
 - **Simulated:** Maya and Jake are invented, both phones are on one screen, and a demo clock fast-forwards to date time.
-- **Not yet done:** webhooks have been tested with events we signed ourselves, not with a live PayPal event.
+- **Not yet done:** webhooks have been tested with events we signed ourselves, not with a live PayPal event. The wingcat's Agent Toolkit check was added after the video was recorded, so the video does not show it; it has been run live on the two settled sandbox orders from the video.
 
 ## Built with
 
-typescript, node.js, fastify, sqlite, react, vite, paypal, paypal-server-sdk, apimatic, anthropic, claude, vitest, docker
+typescript, node.js, fastify, sqlite, react, vite, paypal, paypal-server-sdk, paypal-agent-toolkit, apimatic, anthropic, claude, vitest, docker
 
 ## Links
 
